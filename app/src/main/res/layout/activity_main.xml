@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <ImageButton
+        android:id="@+id/back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="17dp"
+        android:background="@drawable/roundbuttonwhite"
+        android:onClick="back"
+        android:src="@drawable/ic_arrow_back_black_24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.025"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.014" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="top"
+        android:text="Welcome to Let's Chat!"
+        android:textColor="@color/colorBlack"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.366"
+        app:layout_constraintStart_toEndOf="@+id/back"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="342dp"
+        android:layout_height="62dp"
+        android:layout_marginTop="40dp"
+        android:text="Please enter your country code and phone number to continue"
+        android:textAlignment="center"
+        android:textColor="#A7000000"
+        android:textSize="20sp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+    <EditText
+        android:id="@+id/phonenumber"
+        android:layout_width="274dp"
+        android:layout_height="51dp"
+        android:layout_marginTop="296dp"
+        android:layout_marginEnd="28dp"
+        android:ems="10"
+        android:hint="Phone Number"
+        android:inputType="phone"
+        android:maxLength="10"
+        android:textColor="@color/colorBlack"
+        android:textColorHint="@color/colorBlack"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="347dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/round"
+        android:backgroundTint="@color/colorAccent"
+        android:onClick="generate"
+        android:text="Generate OTP"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.562"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/phonenumber" />
+
+    <EditText
+        android:id="@+id/countrycode"
+        android:layout_width="59dp"
+        android:layout_height="51dp"
+        android:layout_marginTop="296dp"
+        android:ems="10"
+        android:hint="+91"
+        android:layout_marginStart="20dp"
+        android:inputType="phone"
+        android:maxLength="2"
+        android:textAlignment="center"
+        android:textColor="@color/colorBlack"
+        android:textColorHint="@color/colorBlack"
+        app:layout_constraintEnd_toStartOf="@+id/phonenumber"
+        app:layout_constraintHorizontal_bias="0.66"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="57dp"
+        android:layout_height="21dp"
+        android:layout_marginBottom="5dp"
+        android:text="R4J4N"
+        android:textAlignment="center"
+        android:textColor="@color/colorBlack"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button2"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="263dp"
+        android:layout_height="166dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:srcCompat="@drawable/book" />
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
