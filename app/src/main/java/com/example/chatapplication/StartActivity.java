@@ -23,7 +23,9 @@ public class StartActivity extends AppCompatActivity {
             finish();
         }
         if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
             getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorBlack));
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorWhite));
 
         }
     }

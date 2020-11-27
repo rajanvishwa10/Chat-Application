@@ -2,9 +2,11 @@ package com.example.chatapplication;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -33,62 +35,70 @@ import java.util.concurrent.TimeUnit;
 
 public class OtpActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
-    String codesent;
+    String codesent, number;
     private ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_otp);
-        mAuth= FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Authenticating...");
         progressDialog.setTitle("Verifying");
-        String number =getIntent().getStringExtra("phonenumber");
-        Log.d("phone","phone number="+number);
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorBlack));
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorWhite));
+
+        }
+
+        number = getIntent().getStringExtra("phonenumber");
+        Log.d("phone", "phone number=" + number);
         sendVerificationCode(number);
     }
-    public void back2(View view){
-        Intent intent=new Intent(this,MainActivity.class);
-        startActivity(intent);
+
+    public void back2(View view) {
+        onBackPressed();
     }
-    public void next(View view){
+
+    public void next(View view) {
 
 
-        EditText editText= (EditText) findViewById(R.id.otp);
-        String otp=editText.getText().toString().trim();
+        EditText editText = (EditText) findViewById(R.id.otp);
+        String otp = editText.getText().toString().trim();
 
-        if(otp.isEmpty()){
+        if (otp.isEmpty()) {
             editText.setError("Enter OTP");
             editText.requestFocus();
-            return;
-        }
-        else if(otp.length()<6){
+        } else if (otp.length() < 6) {
             editText.setError("OTP should be 6 Digits");
-            editText.requestFocus();return;
-        }
-        else {
+            editText.requestFocus();
+        } else {
             verifyCode(otp);
-
         }
 
-        Log.d("OTP","otp is "+otp);
+        Log.d("OTP", "otp is " + otp);
 
     }
-    private void sendVerificationCode(String number){
+
+    private void sendVerificationCode(String number) {
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
                 number,        // Phone number to verify
-                10,                 // Timeout duration
+                60,                 // Timeout duration
                 TimeUnit.SECONDS,   // Unit of timeout
                 this,               // Activity (for callback binding)
                 mCallbacks);
 
     }
+
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks
-            =new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+            = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
         @Override
         public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
-            String code=phoneAuthCredential.getSmsCode();
-            if(code!=null){
+            String code = phoneAuthCredential.getSmsCode();
+            if (code != null) {
                 verifyCode(code);
             }
             //signInWithCredential(phoneAuthCredential);
@@ -97,40 +107,52 @@ public class OtpActivity extends AppCompatActivity {
         @Override
         public void onVerificationFailed(@NonNull FirebaseException e) {
             Toast.makeText(OtpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            Log.d("error",e.getMessage());
+            Log.d("error", e.getMessage());
         }
 
         @Override
         public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
             super.onCodeSent(s, forceResendingToken);
-            codesent=s;
+            codesent = s;
         }
     };
-    private void verifyCode(String code){
+
+    private void verifyCode(String code) {
         try {
             PhoneAuthCredential credential = PhoneAuthProvider.getCredential(codesent, code);
             signInWithCredential(credential);
             progressDialog.show();
-        }
-        catch (Exception e) {
-            Log.i("exception",e.toString());
-            Toast.makeText(OtpActivity.this,"Invalid credentials",Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Log.i("exception", e.toString());
+            Toast.makeText(OtpActivity.this, "Invalid credentials", Toast.LENGTH_LONG).show();
             progressDialog.dismiss();
         }
     }
-    private void signInWithCredential(PhoneAuthCredential credential){
+
+    private void signInWithCredential(PhoneAuthCredential credential) {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             progressDialog.cancel();
-                            Intent intent = new Intent(OtpActivity.this, MainActivity2.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
-                        }
-                         else {
+
+                            FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+                            DatabaseReference myRef = firebaseDatabase.getReference("Users").child(number);
+                            Map<String, Object> updates = new HashMap<>();
+                            updates.put("phoneNumber", number);
+                            myRef.setValue(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isComplete()) {
+                                        Intent intent = new Intent(OtpActivity.this, MainActivity2.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                }
+                            });
+                        } else {
                             Toast.makeText(OtpActivity.this, "Invalid Otp", Toast.LENGTH_SHORT).show();
                             progressDialog.cancel();
                             // Sign in failed, display a left_message and update the UI

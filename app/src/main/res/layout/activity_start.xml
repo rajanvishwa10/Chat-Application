@@ -8,17 +8,20 @@
     android:orientation="vertical"
     tools:context=".StartActivity">
 
-    <RelativeLayout
+    <ImageView
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
-        android:layout_height="494dp"
-        android:background="@drawable/start" />
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:scaleType="centerCrop"
+        android:src="@drawable/start" />
 
     <Button
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_below="@+id/relativeLayout"
+        android:layout_height="50dp"
         android:layout_marginTop="9dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginHorizontal="10dp"
         android:background="@drawable/roundbutton"
         android:onClick="lets"
         android:text="Let's Chat"

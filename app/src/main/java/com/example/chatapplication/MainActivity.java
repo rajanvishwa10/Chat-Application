@@ -1,23 +1,67 @@
 package com.example.chatapplication;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.colorWhite));
+        }
+        request();
+
     }
+
     public void back(View view) {
         Intent intent = new Intent(getApplicationContext(), StartActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void request() {
+        if (ContextCompat.checkSelfPermission
+                (this,
+                        Manifest.permission.READ_CONTACTS
+                ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show();
+        } else {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.READ_CONTACTS},
+                    1
+            );
+
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     public void generate(View view) {
@@ -42,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), OtpActivity.class);
             intent.putExtra("phonenumber", phoneNumber);
             startActivity(intent);
-
-
         }
 
     }
