@@ -138,7 +138,8 @@ public class OtpActivity extends AppCompatActivity {
                             progressDialog.cancel();
 
                             FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-                            DatabaseReference myRef = firebaseDatabase.getReference("Users").child(number);
+                            DatabaseReference myRef = firebaseDatabase.getReference("Users")
+                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
                             Map<String, Object> updates = new HashMap<>();
                             updates.put("phoneNumber", number);
                             myRef.setValue(updates).addOnCompleteListener(new OnCompleteListener<Void>() {

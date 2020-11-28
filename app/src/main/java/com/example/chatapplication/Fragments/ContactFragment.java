@@ -66,8 +66,6 @@ public class ContactFragment extends Fragment {
         }
     }
 
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -93,6 +91,7 @@ public class ContactFragment extends Fragment {
             public void onClick(View v, int position) {
                 Intent intent = new Intent(getContext().getApplicationContext(), UserChatActivity.class);
                 intent.putExtra("name", contactList.get(position).getName());
+                intent.putExtra("number",contactList.get(position).getPhone());
                 startActivity(intent);
             }
         };
