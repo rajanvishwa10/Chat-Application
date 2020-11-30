@@ -162,33 +162,55 @@ public class UserChatActivity extends AppCompatActivity {
         String message = editText.getText().toString().trim();
         //Toast.makeText(this, "" + message, Toast.LENGTH_SHORT).show();
         number = getIntent().getStringExtra("number");
-        if (number.isEmpty()) {
+        if (message.isEmpty()) {
             Toasty.error(this, "Can't send Empty Messages", Toast.LENGTH_SHORT).show();
-        } else {
+        }
+        else {
             sendMessage(senderNumber, number, message);
         }
 
-
     }
 
-    private void sendMessage(String Sender, String Receiver, String Message) {
+    private void sendMessage(String Sender, final String Receiver, String Message) {
         final Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy h:mm a", Locale.getDefault());
         final String formattedDate = df.format(c);
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         //.child(Sender + " " + Receiver)
         //.child(Sender + " " + Receiver + " " + formattedDate);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy h:mm:ss:SSS", Locale.getDefault());
+        String date = dateFormat.format(c);
+        System.out.println(date);
+
         Map<String, Object> messages = new HashMap<>();
         messages.put("Sender", Sender);
         messages.put("Receiver", Receiver);
         messages.put("Message", Message);
         messages.put("Date", formattedDate);
-        databaseReference.push().setValue(messages).addOnCompleteListener(new OnCompleteListener<Void>() {
+        databaseReference.child(c.toString()).setValue(messages).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isComplete()) {
                     editText.setText(null);
                 }
+            }
+        });
+
+        final DatabaseReference databaseReference1 = FirebaseDatabase.getInstance().getReference("Chatlist")
+                .child(Sender).child(Receiver + date);
+
+        databaseReference1.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(!snapshot.exists()){
+                    databaseReference1.child("id").setValue(Receiver);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
             }
         });
     }

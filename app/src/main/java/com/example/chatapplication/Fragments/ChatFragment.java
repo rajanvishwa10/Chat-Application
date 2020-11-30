@@ -14,7 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.chatapplication.Adapters.Chats;
+import com.example.chatapplication.Adapters.UserObject;
+import com.example.chatapplication.Chatlist;
 import com.example.chatapplication.R;
 import com.example.chatapplication.RecentChat;
 import com.example.chatapplication.UserAdapter;
@@ -34,7 +35,7 @@ public class ChatFragment extends Fragment {
     UserAdapter userAdapter;
 
     List<RecentChat> chatList;
-    List<String> userList;
+    List<Chatlist> userList;
 
     DatabaseReference databaseReference;
     ProgressDialog progressDialog;
@@ -59,22 +60,17 @@ public class ChatFragment extends Fragment {
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("userNumber", Context.MODE_PRIVATE);
         final String sender = sharedPreferences.getString("number", "");
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+        databaseReference = FirebaseDatabase.getInstance().getReference("Chatlist").
+                child(sender);
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 userList.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Chats chats = dataSnapshot.getValue(Chats.class);
-                    if (chats.getSender().equals(sender)) {
-                        userList.add(chats.getReceiver());
-                    }
-                    if (chats.getReceiver().equals(sender)) {
-                        userList.add(chats.getSender());
-                    }
+                for (DataSnapshot dataSnapshot: snapshot.getChildren()){
+                    Chatlist chatlist = dataSnapshot.getValue(Chatlist.class);
+                    userList.add(chatlist);
                 }
-
-                readChats();
+                chatList();
             }
 
             @Override
@@ -83,33 +79,46 @@ public class ChatFragment extends Fragment {
             }
         });
 
+
+
+//        databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+//        databaseReference.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                userList.clear();
+//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+//                    Chats chats = dataSnapshot.getValue(Chats.class);
+//                    if (chats.getSender().equals(sender)) {
+//                        userList.add(chats.getReceiver());
+//                    }
+//                    if (chats.getReceiver().equals(sender)) {
+//                        userList.add(chats.getSender());
+//                    }
+//                }
+//
+////                readChats();
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+
         return view;
     }
-
-    private void readChats() {
-
-
+    private void chatList(){
         chatList = new ArrayList<>();
         databaseReference = FirebaseDatabase.getInstance().getReference("Users");
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 chatList.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    RecentChat recentChat = dataSnapshot.getValue(RecentChat.class);
-
-                    for (String number : userList) {
-                        if (recentChat.getPhoneNumber().equals(number)) {
-                            if (chatList.size() != 0) {
-                                    for (RecentChat recentChat1 : chatList) {
-                                        if (!recentChat.getPhoneNumber().equals(recentChat1.getPhoneNumber())) {
-                                            chatList.add(recentChat);
-                                        }
-                                    }
-
-                            } else {
-                                chatList.add(recentChat);
-                            }
+                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    RecentChat userObject = dataSnapshot.getValue(RecentChat.class);
+                    for(Chatlist chatlist : userList){
+                        if(userObject.getPhoneNumber().equals(chatlist.getId())){
+                            chatList.add(userObject);
                         }
                     }
                 }
@@ -123,7 +132,46 @@ public class ChatFragment extends Fragment {
 
             }
         });
-
-
     }
+
+//    private void readChats() {
+//
+//
+//        chatList = new ArrayList<>();
+//        databaseReference = FirebaseDatabase.getInstance().getReference("Users");
+//        databaseReference.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                chatList.clear();
+//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+//                    RecentChat recentChat = dataSnapshot.getValue(RecentChat.class);
+//
+//                    for (String number : userList) {
+//                        if (recentChat.getPhoneNumber().equals(number)) {
+//                            if (chatList.size() != 0) {
+//                                    for (RecentChat recentChat1 : chatList) {
+//                                        if (!recentChat.getPhoneNumber().equals(recentChat1.getPhoneNumber())) {
+//                                            chatList.add(recentChat);
+//                                        }
+//                                    }
+//
+//                            } else {
+//                                chatList.add(recentChat);
+//                            }
+//                        }
+//                    }
+//                }
+//                userAdapter = new UserAdapter(getContext(), chatList);
+//                progressDialog.dismiss();
+//                recyclerView.setAdapter(userAdapter);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+//
+//
+//    }
 }

@@ -142,6 +142,7 @@ public class OtpActivity extends AppCompatActivity {
                                     .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
                             Map<String, Object> updates = new HashMap<>();
                             updates.put("phoneNumber", number);
+                            updates.put("uid",FirebaseAuth.getInstance().getCurrentUser().getUid());
                             myRef.setValue(updates).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
