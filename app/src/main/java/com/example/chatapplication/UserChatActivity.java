@@ -2,16 +2,27 @@ package com.example.chatapplication;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -23,6 +34,8 @@ import com.example.chatapplication.Adapters.MessageAdapter;
 import com.example.chatapplication.Adapters.UserListAdapter;
 import com.example.chatapplication.Adapters.UserObject;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -30,7 +43,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -53,6 +71,7 @@ public class UserChatActivity extends AppCompatActivity {
     MessageAdapter messageAdapter;
     List<Chats> chats;
     RecyclerView recyclerView;
+    Bitmap bitmap;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -63,6 +82,9 @@ public class UserChatActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler);
         recyclerView.setHasFixedSize(true);
         chats = new ArrayList<>();
+
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        getWindow().setNavigationBarColor(Color.parseColor("#EDE9E9"));
 
         number = getIntent().getStringExtra("number");
 
@@ -198,7 +220,7 @@ public class UserChatActivity extends AppCompatActivity {
         });
 
         final DatabaseReference databaseReference1 = FirebaseDatabase.getInstance().getReference("Chatlist")
-                .child(Sender).child(Receiver + date);
+                .child(Sender).child(Receiver);
 
         databaseReference1.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -222,6 +244,110 @@ public class UserChatActivity extends AppCompatActivity {
         emojIconActions.ShowEmojIcon();
         emojIconActions.setUseSystemEmoji(true);
         editText.setUseSystemDefault(true);
-        //Toast.makeText(this, "Clicked!!", Toast.LENGTH_SHORT).show();
+    }
+
+    public void image(View view) {
+        request();
+    }
+    private void request() {
+        if (ContextCompat.checkSelfPermission
+                (this,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            SelectImage();
+        } else {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    1
+            );
+
+        }
+    }
+    private void SelectImage() {
+        final CharSequence[] items = {"Gallery", "Camera", "Cancel"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add Image");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (items[i].equals("Camera")) {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(intent, 0);
+                } else if (items[i].equals("Gallery")) {
+                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    intent.setType("image/*");
+                    startActivityForResult(intent.createChooser(intent, "Select file"), 1);
+                } else if (items[i].equals("Cancel")) {
+                    dialogInterface.dismiss();
+                }
+            }
+        });
+        builder.create().show();
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case 1:
+                if (resultCode == RESULT_OK) {
+                    // Get the Uri of the selected file
+                    Uri uri = data.getData();
+                    try {
+                        bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(bitmap);
+                    postImages(bitmap);
+                }
+                break;
+
+            case 0:
+                if (resultCode == RESULT_OK) {
+                    bitmap = (Bitmap) data.getExtras().get("data");
+                    System.out.println(bitmap);
+                    postImages(bitmap);
+                }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void postImages(Bitmap bitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+
+        final Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss", Locale.getDefault());
+        final String formattedDate = df.format(c);
+
+
+        final StorageReference reference = FirebaseStorage.getInstance().getReference().
+                child("Images").
+                child(formattedDate + ".jpeg");
+
+        reference.putBytes(byteArrayOutputStream.toByteArray())
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                        reference.getDownloadUrl().addOnSuccessListener(
+                                new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri Imguri) {
+                                        sendMessage(senderNumber,number,Imguri.toString());
+                                    }
+                                }
+                        );
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+//
+                    }
+                });
     }
 }

@@ -2,14 +2,19 @@ package com.example.chatapplication.Adapters;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.Image;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.chatapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -25,8 +30,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     public static final int MSG_TYPE_LEFT = 0;
     public static final int MSG_TYPE_RIGHT = 1;
     String number;
-    private Context context;
-    private List<Chats> chats;
+    private final Context context;
+    private final List<Chats> chats;
 
     public MessageAdapter(Context context, List<Chats> chats) {
         this.chats = chats;
@@ -52,9 +57,23 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         Chats chat = chats.get(position);
-        holder.show_message.setText(chat.getMessage());
+        String chatMessage = chat.getMessage();
+
         String time = chat.getDate();
         String[] newTime = time.split("\\s");
+
+        if(chatMessage.contains("https://")){
+            holder.imageView.setVisibility(View.VISIBLE);
+            holder.cardView.setVisibility(View.VISIBLE);
+            holder.linearLayout.setVisibility(View.GONE);
+            holder.imageTime.setVisibility(View.VISIBLE);
+            holder.imageTime.setText(newTime[1]+" "+newTime[2]);
+            Glide.with(holder.imageView.getContext()).load(chatMessage).into(holder.imageView);
+        }else {
+            holder.show_message.setText(chatMessage);
+        }
+
+
         holder.time.setText(newTime[1]+" "+newTime[2]);
 
     }
@@ -66,13 +85,20 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView show_message, time;
+        TextView show_message, time, imageTime;
+        ImageView imageView;
+        LinearLayout linearLayout;
+        CardView cardView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 
             show_message = itemView.findViewById(R.id.chats);
             time = itemView.findViewById(R.id.time);
+            imageView = itemView.findViewById(R.id.image);
+            linearLayout = itemView.findViewById(R.id.linearLayout);
+            cardView = itemView.findViewById(R.id.cardView);
+            imageTime = itemView.findViewById(R.id.imageTime);
         }
     }
 
@@ -80,7 +106,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     public int getItemViewType(int position) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("userNumber", Context.MODE_PRIVATE);
         number = sharedPreferences.getString("number", "");
-        System.out.println("number" + number);
+        //System.out.println("number" + number);
         if (chats.get(position).getSender().equals(number)) {
             return MSG_TYPE_RIGHT;
         } else {
