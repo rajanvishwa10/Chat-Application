@@ -7,8 +7,24 @@
     android:background="#EDE9E9"
     tools:context=".UserChatActivity">
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/circleImageView"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:elevation="3dp"
+        android:layout_alignBottom="@+id/toolbar"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginVertical="5dp"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
+        android:elevation="1dp"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_alignParentTop="true"
@@ -16,8 +32,6 @@
         android:minHeight="?attr/actionBarSize"
         android:textAlignment="gravity"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:contentInsetLeft="0dp"
-        app:contentInsetStart="0dp"
         app:contentInsetStartWithNavigation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
@@ -27,12 +41,13 @@
         app:titleMarginStart="0dp"
         app:titleTextAppearance="@style/Toolbar.TitleText" />
 
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
-        android:layout_below="@+id/toolbar"
-        android:layout_above="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@+id/linearLayout"
+        android:layout_below="@+id/toolbar"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
@@ -46,7 +61,6 @@
         android:layout_gravity="end|bottom"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        android:elevation="10dp"
         android:onClick="sendmess"
         android:src="@drawable/ic_baseline_send_24" />
 
@@ -56,11 +70,10 @@
         android:layout_height="50dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="5dp"
         android:layout_marginVertical="10dp"
-        android:layout_marginStart="5dp"
         android:layout_toStartOf="@id/fab"
         android:background="@drawable/customedittext"
-        android:elevation="2dp"
         android:orientation="horizontal"
         android:paddingVertical="2dp"
         android:paddingStart="5dp">
@@ -70,9 +83,9 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_gravity="start|center"
+            android:layout_marginStart="5dp"
             android:background="@android:color/transparent"
             android:onClick="emojiview"
-            android:layout_marginStart="5dp"
             android:src="@drawable/icons8_happy_24px_2" />
 
 
@@ -83,8 +96,8 @@
             android:layout_gravity="center"
             android:layout_marginVertical="2dp"
             android:layout_marginStart="5dp"
-            android:background="@color/colorWhite"
             android:layout_weight="1"
+            android:background="@color/colorWhite"
             android:hint="Type a Message"
             android:inputType="textMultiLine"
             android:paddingStart="5dp"
@@ -92,11 +105,11 @@
             app:emojiconSize="28sp" />
 
         <ImageButton
-            android:layout_width="0dp"
+            android:layout_width="30dp"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
-            android:layout_marginHorizontal="5dp"
-            android:layout_weight="1"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="8dp"
             android:background="@android:color/transparent"
             android:onClick="image"
             android:src="@drawable/ic_baseline_photo_camera_24" />

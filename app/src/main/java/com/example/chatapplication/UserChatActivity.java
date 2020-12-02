@@ -29,10 +29,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.chatapplication.Adapters.Chats;
 import com.example.chatapplication.Adapters.MessageAdapter;
+import com.example.chatapplication.Adapters.User;
 import com.example.chatapplication.Adapters.UserListAdapter;
 import com.example.chatapplication.Adapters.UserObject;
+import com.example.chatapplication.Fragments.APIService;
+import com.example.chatapplication.Notification.Client;
+import com.example.chatapplication.Notification.Data;
+import com.example.chatapplication.Notification.MyResponse;
+import com.example.chatapplication.Notification.Sender;
+import com.example.chatapplication.Notification.Token;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,6 +50,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -58,20 +67,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import es.dmoral.toasty.Toasty;
 import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class UserChatActivity extends AppCompatActivity {
     Toolbar toolbar;
     EmojiconEditText editText;
     ImageView imageView;
+    CircleImageView circleImageView;
     String number, senderNumber;
     DatabaseReference myRef;
     MessageAdapter messageAdapter;
     List<Chats> chats;
     RecyclerView recyclerView;
     Bitmap bitmap;
+    APIService apiService;
+    boolean notify = false;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -83,8 +99,12 @@ public class UserChatActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         chats = new ArrayList<>();
 
+        circleImageView = findViewById(R.id.circleImageView);
+
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         getWindow().setNavigationBarColor(Color.parseColor("#EDE9E9"));
+
+        apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
 
         number = getIntent().getStringExtra("number");
 
@@ -98,9 +118,9 @@ public class UserChatActivity extends AppCompatActivity {
             name = extras.getString("name");
         }
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if(name.equals("")){
+        if (name.equals("")) {
             toolbar.setTitle(getIntent().getStringExtra("number"));
-        }else{
+        } else {
             toolbar.setTitle(name);
         }
 
@@ -115,9 +135,38 @@ public class UserChatActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("userNumber", Context.MODE_PRIVATE);
         String num = sharedPreferences.getString("number", "");
 
-        System.out.println("send "+num);
-        System.out.println("rec "+number);
+        System.out.println("send " + num);
+        System.out.println("rec " + number);
         readMessages(num, number);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("Users");
+        myRef.orderByChild("phoneNumber").equalTo(number).addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+                    final String url = snapshot.child("profileImage").getValue(String.class);
+                    Glide.with(getApplicationContext()).load(url).into(circleImageView);
+                    circleImageView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(getApplicationContext(), FullScreenImageActivity.class);
+                            intent.putExtra("url",url);
+                            startActivity(intent);
+                        }
+                    });
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                //Failed to read value
+                Toasty.error(getApplicationContext(), "error", Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     private void read() {
@@ -155,7 +204,7 @@ public class UserChatActivity extends AppCompatActivity {
                     chats.clear();
                     for (DataSnapshot snapshot1 : snapshot.getChildren()) {
                         Chats chat = snapshot1.getValue(Chats.class);
-                        if (chat.getReceiver().equals(receiverPhone) && chat.getSender().equals(phone)||
+                        if (chat.getReceiver().equals(receiverPhone) && chat.getSender().equals(phone) ||
                                 chat.getReceiver().equals(phone) && chat.getSender().equals(receiverPhone)) {
 
                             chats.add(chat);
@@ -181,13 +230,13 @@ public class UserChatActivity extends AppCompatActivity {
     }
 
     public void sendmess(View view) {
+        notify = true;
         String message = editText.getText().toString().trim();
         //Toast.makeText(this, "" + message, Toast.LENGTH_SHORT).show();
         number = getIntent().getStringExtra("number");
         if (message.isEmpty()) {
             Toasty.error(this, "Can't send Empty Messages", Toast.LENGTH_SHORT).show();
-        }
-        else {
+        } else {
             sendMessage(senderNumber, number, message);
         }
 
@@ -197,7 +246,7 @@ public class UserChatActivity extends AppCompatActivity {
         final Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy h:mm a", Locale.getDefault());
         final String formattedDate = df.format(c);
-        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         //.child(Sender + " " + Receiver)
         //.child(Sender + " " + Receiver + " " + formattedDate);
 
@@ -225,7 +274,7 @@ public class UserChatActivity extends AppCompatActivity {
         databaseReference1.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(!snapshot.exists()){
+                if (!snapshot.exists()) {
                     databaseReference1.child("id").setValue(Receiver);
                 }
             }
@@ -235,8 +284,65 @@ public class UserChatActivity extends AppCompatActivity {
 
             }
         });
+        final String msg = Message;
+        databaseReference = FirebaseDatabase.getInstance().getReference("Users")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                System.out.println(snapshot);
+                User userObject = snapshot.getValue(User.class);
+                if (notify){
+                    sendNot(Receiver, userObject.getPhoneNumber(), msg);
+                    System.out.println(userObject.getPhoneNumber());
+                }
+                notify = false;
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
+    private void sendNot(String receiver, final String phone, final String msg) {
+        DatabaseReference tokens = FirebaseDatabase.getInstance().getReference("Tokens");
+        Query query = tokens.orderByKey().equalTo(receiver);
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Token token = dataSnapshot.getValue(Token.class);
+                    Data data = new Data(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                            R.mipmap.ic_launcher, phone + ": " + msg, "New Message", senderNumber);
+
+                    Sender sender = new Sender(data, token.getToken());
+                    apiService.sendNotification(sender)
+                            .enqueue(new Callback<MyResponse>() {
+                                @Override
+                                public void onResponse(Call<MyResponse> call, Response<MyResponse> response) {
+                                    if (response.code() == 200) {
+                                        if (response.body().success != 1) {
+                                            Toast.makeText(UserChatActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<MyResponse> call, Throwable t) {
+
+                                }
+                            });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
 
 
     public void emojiview(View view) {
@@ -249,6 +355,7 @@ public class UserChatActivity extends AppCompatActivity {
     public void image(View view) {
         request();
     }
+
     private void request() {
         if (ContextCompat.checkSelfPermission
                 (this,
@@ -265,6 +372,7 @@ public class UserChatActivity extends AppCompatActivity {
 
         }
     }
+
     private void SelectImage() {
         final CharSequence[] items = {"Gallery", "Camera", "Cancel"};
 
@@ -287,6 +395,7 @@ public class UserChatActivity extends AppCompatActivity {
         });
         builder.create().show();
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -336,7 +445,7 @@ public class UserChatActivity extends AppCompatActivity {
                                 new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(Uri Imguri) {
-                                        sendMessage(senderNumber,number,Imguri.toString());
+                                        sendMessage(senderNumber, number, Imguri.toString());
                                     }
                                 }
                         );

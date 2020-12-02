@@ -7,6 +7,10 @@ public class UserObject {
         this.phone = phone;
     }
 
+    public UserObject(){
+
+    }
+
     public String getName() {
         return name;
     }

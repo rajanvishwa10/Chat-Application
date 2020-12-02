@@ -16,14 +16,17 @@ import android.view.ViewGroup;
 
 import com.example.chatapplication.Adapters.UserObject;
 import com.example.chatapplication.Chatlist;
+import com.example.chatapplication.Notification.Token;
 import com.example.chatapplication.R;
 import com.example.chatapplication.RecentChat;
 import com.example.chatapplication.UserAdapter;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,34 +82,17 @@ public class ChatFragment extends Fragment {
             }
         });
 
-
-
-//        databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
-//        databaseReference.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                userList.clear();
-//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-//                    Chats chats = dataSnapshot.getValue(Chats.class);
-//                    if (chats.getSender().equals(sender)) {
-//                        userList.add(chats.getReceiver());
-//                    }
-//                    if (chats.getReceiver().equals(sender)) {
-//                        userList.add(chats.getSender());
-//                    }
-//                }
-//
-////                readChats();
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
+        updateToken(FirebaseInstanceId.getInstance().getToken());
 
         return view;
     }
+
+    private void updateToken(String token){
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
+        Token token1 = new Token(token);
+        databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(token1);
+    }
+
     private void chatList(){
         chatList = new ArrayList<>();
         databaseReference = FirebaseDatabase.getInstance().getReference("Users");
@@ -134,44 +120,5 @@ public class ChatFragment extends Fragment {
         });
     }
 
-//    private void readChats() {
-//
-//
-//        chatList = new ArrayList<>();
-//        databaseReference = FirebaseDatabase.getInstance().getReference("Users");
-//        databaseReference.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                chatList.clear();
-//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-//                    RecentChat recentChat = dataSnapshot.getValue(RecentChat.class);
-//
-//                    for (String number : userList) {
-//                        if (recentChat.getPhoneNumber().equals(number)) {
-//                            if (chatList.size() != 0) {
-//                                    for (RecentChat recentChat1 : chatList) {
-//                                        if (!recentChat.getPhoneNumber().equals(recentChat1.getPhoneNumber())) {
-//                                            chatList.add(recentChat);
-//                                        }
-//                                    }
-//
-//                            } else {
-//                                chatList.add(recentChat);
-//                            }
-//                        }
-//                    }
-//                }
-//                userAdapter = new UserAdapter(getContext(), chatList);
-//                progressDialog.dismiss();
-//                recyclerView.setAdapter(userAdapter);
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
-//
-//
-//    }
+//    pr
 }

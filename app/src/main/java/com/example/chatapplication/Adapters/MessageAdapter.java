@@ -1,6 +1,7 @@
 package com.example.chatapplication.Adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.Image;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.chatapplication.FullScreenImageActivity;
 import com.example.chatapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -54,12 +56,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
 
         Chats chat = chats.get(position);
-        String chatMessage = chat.getMessage();
+        final String chatMessage = chat.getMessage();
 
-        String time = chat.getDate();
+        final String time = chat.getDate();
         String[] newTime = time.split("\\s");
 
         if(chatMessage.contains("https://")){
@@ -68,6 +70,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             holder.linearLayout.setVisibility(View.GONE);
             holder.imageTime.setVisibility(View.VISIBLE);
             holder.imageTime.setText(newTime[1]+" "+newTime[2]);
+            holder.imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, FullScreenImageActivity.class);
+                    intent.putExtra("url",chatMessage);
+                    intent.putExtra("date",time);
+                    context.startActivity(intent);
+                }
+            });
             Glide.with(holder.imageView.getContext()).load(chatMessage).into(holder.imageView);
         }else {
             holder.show_message.setText(chatMessage);
