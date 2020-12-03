@@ -88,12 +88,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                                 if(!url.isEmpty()){
                                     Glide.with(context).load(url).into(holder.imageView);
                                 }else{
-                                    holder.imageView.setImageResource(R.mipmap.ic_launcher);
+                                    holder.imageView.setImageResource(R.drawable.user);
                                 }
                             }catch (NullPointerException e){
-                                holder.imageView.setImageResource(R.mipmap.ic_launcher);
+                                holder.imageView.setImageResource(R.drawable.user);
                             }
-
 
                             holder.imageView.setOnClickListener(new View.OnClickListener() {
                                 @Override

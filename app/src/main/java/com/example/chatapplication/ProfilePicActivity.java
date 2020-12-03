@@ -17,10 +17,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.chatapplication.Adapters.Chats;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,21 +37,27 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import es.dmoral.toasty.Toasty;
 
 public class ProfilePicActivity extends AppCompatActivity {
     Bitmap bitmap;
+    EditText editText;
     ImageView imageView;
-    String url;
+    String url, status,phone;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_pic);
         imageView = findViewById(R.id.circleImageView);
-
+        editText = findViewById(R.id.status);
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,14 +67,8 @@ public class ProfilePicActivity extends AppCompatActivity {
         });
 
         getProfilePic();
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(),FullScreenImageActivity.class);
-                intent.putExtra("url",url);
-                startActivity(intent);
-            }
-        });
+        getStatus();
+
     }
 
     public void selectImage(View view) {
@@ -86,7 +88,6 @@ public class ProfilePicActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     1
             );
-
         }
     }
 
@@ -142,6 +143,27 @@ public class ProfilePicActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    private void setStatus(String status) {
+        final Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy h:mm a", Locale.getDefault());
+        final String formattedDate = df.format(c);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Status")
+                .child(phone);
+        Map<String, Object> update = new HashMap<>();
+        update.put("stats", status);
+        update.put("date", formattedDate);
+        update.put("phone", phone);
+
+        databaseReference.updateChildren(update).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(ProfilePicActivity.this, "Status saved", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+
     private void postImages(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
@@ -160,7 +182,7 @@ public class ProfilePicActivity extends AppCompatActivity {
                                     @Override
                                     public void onSuccess(Uri Imguri) {
                                         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users")
-                                                .child(FirebaseAuth.getInstance().getUid());
+                                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
                                         Map<String, Object> updates = new HashMap<>();
 
@@ -195,14 +217,35 @@ public class ProfilePicActivity extends AppCompatActivity {
     private void getProfilePic() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("Users");
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        myRef.addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     url = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("profileImage").getValue(String.class);
+                    phone = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("phoneNumber").getValue(String.class);
 
-                    Glide.with(ProfilePicActivity.this).load(url).into(imageView);
+                    try {
+                        if (url.isEmpty()) {
+                            imageView.setImageResource(R.drawable.icons8_user_60px);
+                        } else {
+                            Glide.with(getApplicationContext()).load(url).into(imageView);
+                            imageView.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(getApplicationContext(), FullScreenImageActivity.class);
+                                    intent.putExtra("url", url);
+                                    startActivity(intent);
+                                }
+                            });
+                        }
+
+                    } catch (NullPointerException e) {
+                        imageView.setImageResource(R.drawable.icons8_user_60px);
+                    }
+
+
+
                 } else {
                     Toasty.error(ProfilePicActivity.this, "Nothing to show", Toast.LENGTH_SHORT).show();
                 }
@@ -215,5 +258,47 @@ public class ProfilePicActivity extends AppCompatActivity {
                 Toasty.error(ProfilePicActivity.this, "error", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void getStatus() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("Status");
+        myRef.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    status = dataSnapshot.child(phone).child("stats").getValue(String.class);
+
+                    try {
+                        if (!status.isEmpty()) {
+                            editText.setText(status);
+                        }
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    Toasty.error(ProfilePicActivity.this, "Nothing to show", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                //Failed to read value
+                Toasty.error(ProfilePicActivity.this, "error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void setStatus(View view) {
+        String status = editText.getText().toString().trim();
+        if (status.isEmpty()) {
+            editText.setError("Enter status");
+        } else {
+            setStatus(status);
+        }
+
     }
 }

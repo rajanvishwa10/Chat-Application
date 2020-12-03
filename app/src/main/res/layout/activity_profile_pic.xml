@@ -22,11 +22,11 @@
         android:id="@+id/circleImageView"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="50dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        tools:src="@tools:sample/avatars" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -41,5 +41,36 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/circleImageView"
         app:layout_constraintVertical_bias="0.807" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/circleImageView">
+
+        <EditText
+            android:layout_weight="1"
+            android:id="@+id/status"
+            android:layout_marginEnd="3dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter status" />
+
+        <ImageButton
+            android:layout_weight="0"
+            android:id="@+id/imagebutton"
+            android:onClick="setStatus"
+            android:src="@drawable/ic_baseline_edit_24"
+            android:background="@android:color/transparent"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

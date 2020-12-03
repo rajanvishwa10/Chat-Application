@@ -82,7 +82,7 @@ public class UserChatActivity extends AppCompatActivity {
     EmojiconEditText editText;
     ImageView imageView;
     CircleImageView circleImageView;
-    String number, senderNumber;
+    String number, senderNumber, url;
     DatabaseReference myRef;
     MessageAdapter messageAdapter;
     List<Chats> chats;
@@ -92,6 +92,7 @@ public class UserChatActivity extends AppCompatActivity {
     ValueEventListener valueEventListener;
     DatabaseReference databaseReference;
     boolean notify = false;
+    String name;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -114,7 +115,6 @@ public class UserChatActivity extends AppCompatActivity {
         linearLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(linearLayoutManager);
 
-        String name = "";
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             name = extras.getString("name");
@@ -151,7 +151,7 @@ public class UserChatActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    final String url = snapshot.child("profileImage").getValue(String.class);
+                    url = snapshot.child("profileImage").getValue(String.class);
                     try {
                         if (!url.isEmpty()) {
                             Glide.with(getApplicationContext()).load(url).into(circleImageView);
@@ -195,21 +195,31 @@ public class UserChatActivity extends AppCompatActivity {
             }
         });
         seenMessage(number);
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),ViewprofileActivity.class);
+                intent.putExtra("number",number);
+                intent.putExtra("url",url);
+                intent.putExtra("name",name);
+                startActivity(intent);
+            }
+        });
     }
 
-    private void seenMessage(final String number){
-         databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
-         valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
+    private void seenMessage(final String number) {
+        databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+        valueEventListener = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot dataSnapshot: snapshot.getChildren()){
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Chats chat = dataSnapshot.getValue(Chats.class);
                     if (chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
                         HashMap<String, Object> hashMap = new HashMap<>();
                         hashMap.put("isseen", true);
                         dataSnapshot.getRef().updateChildren(hashMap);
                         System.out.println("isseen");
-                    }else{
+                    } else {
                         System.out.println("error");
                     }
                 }
@@ -534,6 +544,7 @@ public class UserChatActivity extends AppCompatActivity {
         super.onResume();
         status("Online");
     }
+
     @Override
     protected void onPause() {
         super.onPause();
