@@ -19,6 +19,15 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.chatapplication.ui.main.SectionsPagerAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class MainActivity2 extends AppCompatActivity {
 
@@ -56,5 +65,29 @@ public class MainActivity2 extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public static void status(String status) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Users")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("status", status);
+        databaseReference.updateChildren(hashMap);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        status("Online");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("h:mm a", Locale.getDefault());
+        String formattedDate = df.format(c);
+        status("Last Seen " + formattedDate);
+
     }
 }

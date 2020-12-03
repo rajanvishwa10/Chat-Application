@@ -2,15 +2,25 @@ package com.example.chatapplication.Adapters;
 
 public class Chats {
     String Sender, Receiver, Message, Date;
+    boolean isseen;
 
     public Chats() {
     }
 
-    public Chats(String sender, String receiver, String message, String date) {
+    public Chats(String sender, String receiver, String message, String date, boolean isseen) {
         Sender = sender;
         Receiver = receiver;
         Message = message;
         Date = date;
+        this.isseen = isseen;
+    }
+
+    public boolean isIsseen() {
+        return isseen;
+    }
+
+    public void setIsseen(boolean seen) {
+        isseen = seen;
     }
 
     public String getSender() {

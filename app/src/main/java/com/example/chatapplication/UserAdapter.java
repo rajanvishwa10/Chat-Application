@@ -2,6 +2,7 @@ package com.example.chatapplication;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.chatapplication.Adapters.Chats;
 import com.example.chatapplication.Adapters.UserObject;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -34,6 +36,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     private final Context context;
     private final List<RecentChat> chatList;
     String url1;
+    String lastmess;
+    String senderNumber;
 
     public UserAdapter(Context context, List<RecentChat> chatList) {
         this.context = context;
@@ -52,7 +56,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull final UserAdapter.ViewHolder holder, final int position) {
 
         final String number = chatList.get(position).getPhoneNumber();
-
+        lastMessage(number,holder.textView2);
         Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         while (phones.moveToNext()) {
             final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
@@ -66,7 +70,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                         Intent intent = new Intent(context, UserChatActivity.class);
                         intent.putExtra("name", contactName);
                         intent.putExtra("number", number);
-                        intent.putExtra("url",url1);
+                        intent.putExtra("url", url1);
                         context.startActivity(intent);
                     }
                 });
@@ -77,15 +81,25 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             final String url = snapshot.child("profileImage").getValue(String.class);
-                            url1= snapshot.child("profileImage").getValue(String.class);
-                            Glide.with(context).load(url).into(holder.imageView);
+                            url1 = snapshot.child("profileImage").getValue(String.class);
+                            try{
+                                if(!url.isEmpty()){
+                                    Glide.with(context).load(url).into(holder.imageView);
+                                }else{
+                                    holder.imageView.setImageResource(R.mipmap.ic_launcher);
+                                }
+                            }catch (NullPointerException e){
+                                holder.imageView.setImageResource(R.mipmap.ic_launcher);
+                            }
+
+
                             holder.imageView.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(context, FullScreenImageActivity.class);
-                                    intent.putExtra("url",url);
+                                    intent.putExtra("url", url);
                                     context.startActivity(intent);
                                 }
                             });
@@ -111,7 +125,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView textView;
+        TextView textView, textView2;
         LinearLayout linearLayout;
         CircleImageView imageView;
 
@@ -119,8 +133,44 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             super(itemView);
 
             textView = itemView.findViewById(R.id.number);
+            textView2 = itemView.findViewById(R.id.lastMessage);
             linearLayout = itemView.findViewById(R.id.linear);
             imageView = itemView.findViewById(R.id.circleImageView2);
         }
+    }
+
+    private void lastMessage(final String number, final TextView lastmsg) {
+        lastmess = "default";
+        SharedPreferences sharedPreferences = context.getSharedPreferences("userNumber", Context.MODE_PRIVATE);
+        senderNumber = sharedPreferences.getString("number", "");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Chats chat = dataSnapshot.getValue(Chats.class);
+                    if (chat.getReceiver().equals(number) && chat.getSender().equals(senderNumber) ||
+                            chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
+
+                        lastmess = chat.getMessage();
+                        if(lastmess.contains("https://")){
+                            lastmess = "Image";
+                        }
+
+                    }
+                }
+                if ("default".equals(lastmess)) {
+                    lastmsg.setText("No Message");
+                } else {
+                    lastmsg.setText(lastmess);
+                }
+                lastmess = "default";
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 }

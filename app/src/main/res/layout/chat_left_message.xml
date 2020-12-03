@@ -34,6 +34,17 @@
             android:textColor="#BEFFFFFF" />
     </androidx.cardview.widget.CardView>
 
+    <TextView
+        android:id="@+id/seen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linearLayout"
+        android:textSize="15sp"
+        android:visibility="gone"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="-10dp"
+        android:layout_marginStart="10dp"
+        android:text="seen" />
 
     <LinearLayout
         android:id="@+id/linearLayout"

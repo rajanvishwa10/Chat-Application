@@ -84,8 +84,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             holder.show_message.setText(chatMessage);
         }
 
-
         holder.time.setText(newTime[1]+" "+newTime[2]);
+
+        if(position == chats.size() - 1){
+            if(chat.isIsseen()){
+                holder.isSeen.setText("Seen");
+            }else{
+                holder.isSeen.setText("Delivered");
+            }
+        }else{
+            holder.isSeen.setVisibility(View.GONE);
+        }
 
     }
 
@@ -96,7 +105,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView show_message, time, imageTime;
+        TextView show_message, time, imageTime, isSeen;
         ImageView imageView;
         LinearLayout linearLayout;
         CardView cardView;
@@ -110,6 +119,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             linearLayout = itemView.findViewById(R.id.linearLayout);
             cardView = itemView.findViewById(R.id.cardView);
             imageTime = itemView.findViewById(R.id.imageTime);
+            isSeen = itemView.findViewById(R.id.seen);
         }
     }
 
