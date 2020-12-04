@@ -36,7 +36,7 @@
             android:paddingStart="20sp"
             android:text="Name"
             android:textColor="@color/colorBlack"
-            android:textSize="20dp" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/contact"
@@ -45,7 +45,7 @@
             android:paddingStart="20sp"
             android:paddingBottom="10dp"
             android:text="Contact"
-            android:textSize="15dp" />
+            android:textSize="15sp" />
 
         <View
             android:layout_width="match_parent"

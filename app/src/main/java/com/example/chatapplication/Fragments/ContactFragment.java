@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,14 +36,19 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ContactFragment extends Fragment {
     private RecyclerView mUserList;
     private RecyclerView.Adapter mUserListAdapter;
     private UserListAdapter.RecyclerViewClickListener listener;
     private RecyclerView.LayoutManager mUserListLayoutManager;
-    ArrayList<UserObject> contactList; //userList;
+    ArrayList<UserObject> contactList, userlist; //userList;
     View view;
+    String phone;
 
 
     private void layoutAnimation(RecyclerView recyclerView) {
@@ -58,12 +64,47 @@ public class ContactFragment extends Fragment {
     private void getContactList() {
         Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         while (phones.moveToNext()) {
-            String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-            String phone = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            final String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+            phone = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
             phone = phone.replaceAll("\\s", "");
+//
             UserObject mcontact = new UserObject(name, phone);
             contactList.add(mcontact);
+            checkNumber(mcontact);
+
         }
+    }
+
+    private void checkNumber(final UserObject userObject) {
+        final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("Users");
+        userDb.orderByChild("phoneNumber").equalTo(userObject.getPhone()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String phone;
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        phone = dataSnapshot.child("phoneNumber").getValue(String.class);
+                        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+                        while (phones.moveToNext()) {
+                            final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                            String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                            number = number.replaceAll("\\s", "");
+                            if (number.equals(phone)) {
+                                UserObject userObject1 = new UserObject(contactName, phone);
+                                userlist.add(userObject1);
+                                mUserListAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    }
+//
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     @Override
@@ -73,15 +114,17 @@ public class ContactFragment extends Fragment {
         view = inflater.inflate(R.layout.fragment_contact, container, false);
         mUserList = (RecyclerView) view.findViewById(R.id.recycler);
         contactList = new ArrayList<>();
+        userlist = new ArrayList<>();
         mUserList.setNestedScrollingEnabled(false);
         mUserList.setHasFixedSize(false);
         mUserListLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext(), LinearLayoutManager.VERTICAL, false);
         mUserList.setLayoutManager(mUserListLayoutManager);
-        mUserListAdapter = new UserListAdapter(contactList, listener);
+        mUserListAdapter = new UserListAdapter(userlist, listener);
         mUserList.setAdapter(mUserListAdapter);
         mUserListAdapter.notifyDataSetChanged();
-        getContactList();
         getPermissions();
+        getContactList();
+
         return view;
     }
 
@@ -90,8 +133,8 @@ public class ContactFragment extends Fragment {
             @Override
             public void onClick(View v, int position) {
                 Intent intent = new Intent(getContext().getApplicationContext(), UserChatActivity.class);
-                intent.putExtra("name", contactList.get(position).getName());
-                intent.putExtra("number",contactList.get(position).getPhone());
+                intent.putExtra("name", userlist.get(position).getName());
+                intent.putExtra("number", userlist.get(position).getPhone());
                 startActivity(intent);
             }
         };
@@ -103,3 +146,5 @@ public class ContactFragment extends Fragment {
         }
     }
 }
+
+

@@ -44,32 +44,32 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
     public void onBindViewHolder(@NonNull final UserListRecyclerViewHolder holder, final int position) {
 
         final String phone = userList.get(position).getPhone();
-
-        final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("Users");
-        userDb.orderByChild("phoneNumber").equalTo(phone)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()){
+//
+//        final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("Users");
+//        userDb.orderByChild("phoneNumber").equalTo(phone)
+//                .addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                        if (snapshot.exists()){
                             holder.tname.setText(userList.get(position).getName());
                             String ph = phone.substring(3);
                             holder.tphone.setText(ph);
                             holder.progressBar.setVisibility(View.GONE);
 
-                        }else{
-                            holder.linearLayout.setVisibility(View.GONE);
-                            holder.tname.setVisibility(View.GONE);
-                            holder.tphone.setVisibility(View.GONE);
-                            holder.progressBar.setVisibility(View.GONE);
-                        }
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
+//                        }else{
+//                            holder.linearLayout.setVisibility(View.GONE);
+//                            holder.tname.setVisibility(View.GONE);
+//                            holder.tphone.setVisibility(View.GONE);
+//                            holder.progressBar.setVisibility(View.GONE);
+//                        }
+//
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError error) {
+//
+//                    }
+//                });
     }
 
     @Override
