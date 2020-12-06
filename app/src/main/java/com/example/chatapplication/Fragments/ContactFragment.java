@@ -62,7 +62,8 @@ public class ContactFragment extends Fragment {
 
 
     private void getContactList() {
-        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+        Cursor phones = getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME+" ASC");
         while (phones.moveToNext()) {
             final String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             phone = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
@@ -77,20 +78,20 @@ public class ContactFragment extends Fragment {
 
     private void checkNumber(final UserObject userObject) {
         final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("Users");
-        userDb.orderByChild("phoneNumber").equalTo(userObject.getPhone()).addListenerForSingleValueEvent(new ValueEventListener() {
+        userDb.orderByChild("phoneNumber").equalTo(userObject.getPhone()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     String phone;
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         phone = dataSnapshot.child("phoneNumber").getValue(String.class);
-                        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+                        Cursor phones = getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
                         while (phones.moveToNext()) {
                             final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                             String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                             number = number.replaceAll("\\s", "");
                             if (number.equals(phone)) {
-                                UserObject userObject1 = new UserObject(contactName, phone);
+                                UserObject userObject1 = new UserObject(contactName, userObject.getPhone());
                                 userlist.add(userObject1);
                                 mUserListAdapter.notifyDataSetChanged();
                             }
@@ -117,11 +118,12 @@ public class ContactFragment extends Fragment {
         userlist = new ArrayList<>();
         mUserList.setNestedScrollingEnabled(false);
         mUserList.setHasFixedSize(false);
-        mUserListLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext(), LinearLayoutManager.VERTICAL, false);
+        mUserListLayoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         mUserList.setLayoutManager(mUserListLayoutManager);
         mUserListAdapter = new UserListAdapter(userlist, listener);
         mUserList.setAdapter(mUserListAdapter);
         mUserListAdapter.notifyDataSetChanged();
+        layoutAnimation(mUserList);
         getPermissions();
         getContactList();
 

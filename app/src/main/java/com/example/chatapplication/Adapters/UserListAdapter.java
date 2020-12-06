@@ -76,6 +76,15 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
     public int getItemCount() {
         return userList.size();
     }
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
+    }
 
     public class UserListRecyclerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         public TextView tname, tphone;

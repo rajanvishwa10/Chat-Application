@@ -6,7 +6,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -165,8 +167,10 @@ public class UserChatActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View v) {
                             Intent intent = new Intent(getApplicationContext(), FullScreenImageActivity.class);
+                            ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(UserChatActivity.this,
+                                    circleImageView, circleImageView.getTransitionName());
                             intent.putExtra("url", url);
-                            startActivity(intent);
+                            startActivity(intent,activityOptionsCompat.toBundle());
                         }
                     });
                 }
@@ -199,10 +203,12 @@ public class UserChatActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(),ViewprofileActivity.class);
+                ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(UserChatActivity.this,
+                        circleImageView, circleImageView.getTransitionName());
                 intent.putExtra("number",number);
                 intent.putExtra("url",url);
                 intent.putExtra("name",name);
-                startActivity(intent);
+                startActivity(intent,activityOptionsCompat.toBundle());
             }
         });
     }
