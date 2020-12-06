@@ -46,7 +46,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_marginHorizontal="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -54,6 +54,8 @@
         app:layout_constraintTop_toBottomOf="@+id/circleImageView">
 
         <EditText
+            android:drawableStart="@drawable/ic_baseline_edit_24"
+            android:drawablePadding="10dp"
             android:layout_weight="1"
             android:id="@+id/status"
             android:layout_marginEnd="3dp"
@@ -61,13 +63,16 @@
             android:layout_height="wrap_content"
             android:hint="Enter status" />
 
-        <ImageButton
+        <Button
             android:layout_weight="0"
             android:id="@+id/imagebutton"
+            android:layout_marginTop="10dp"
             android:onClick="setStatus"
-            android:src="@drawable/ic_baseline_edit_24"
-            android:background="@android:color/transparent"
-            android:layout_width="50dp"
+            android:background="@color/colorAccent"
+            android:text="Update Status"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             />
 
