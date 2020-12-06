@@ -15,11 +15,11 @@
         android:background="@android:color/transparent"
         android:minHeight="?attr/actionBarSize"
         android:textAlignment="gravity"
-        app:navigationIcon="@drawable/ic_back_white"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_back_white"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:titleTextAppearance="@style/Toolbar.TitleText" />
 

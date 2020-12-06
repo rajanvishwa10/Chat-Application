@@ -16,8 +16,22 @@ public class FullScreenImageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_screen_image);
 
+        getWindow().setNavigationBarColor(getResources().getColor(R.color.colorBlack));
+        getWindow().setStatusBarColor(getResources().getColor(R.color.colorBlack));
+
         Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle(getIntent().getStringExtra("date"));
+        String name = getIntent().getStringExtra("name");
+        try {
+            if (!name.contains("-")) {
+                toolbar.setTitle(name);
+            } else {
+                toolbar.setTitle(getIntent().getStringExtra("date"));
+            }
+
+        } catch (NullPointerException e) {
+            toolbar.setTitle(getIntent().getStringExtra("date"));
+        }
+
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

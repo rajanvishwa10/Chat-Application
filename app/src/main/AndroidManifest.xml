@@ -19,8 +19,6 @@
         <activity android:name=".FullScreenImageActivity" />
         <activity
             android:name=".UserChatActivity"
-            android:parentActivityName=".MainActivity2"
-            android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity2"

@@ -26,6 +26,7 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:elevation="1dp"
+        app:navigationIcon="@drawable/ic_back_white"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_alignParentTop="true"
@@ -51,7 +52,8 @@
                 android:id="@+id/name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="online"
+                android:text="Name"
+                android:transitionName="name"
                 android:textSize="18sp"
                 android:textColor="@color/colorWhite"/>
 
@@ -59,7 +61,7 @@
                 android:id="@+id/status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="online"
+                android:text=""
                 android:textSize="16sp"
                 android:textColor="@color/colorWhite"/>
         </LinearLayout>

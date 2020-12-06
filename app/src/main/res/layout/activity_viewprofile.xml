@@ -52,6 +52,7 @@
                 android:layout_marginBottom="5dp"
                 android:textColor="@color/colorWhite"
                 android:textSize="22sp"
+                android:transitionName="name"
                 app:layout_constraintBottom_toBottomOf="@+id/profilepic"
                 app:layout_constraintEnd_toEndOf="@+id/profilepic"
                 app:layout_constraintHorizontal_bias="0.026"

@@ -8,6 +8,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Pair;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -122,7 +123,15 @@ public class UserChatActivity extends AppCompatActivity {
             name = extras.getString("name");
         }
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        TextView textView = findViewById(R.id.name);
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
+        final TextView textView = findViewById(R.id.name);
         final TextView textView2 = findViewById(R.id.status);
         if (name.equals("")) {
             textView.setText(getIntent().getStringExtra("number"));
@@ -133,9 +142,7 @@ public class UserChatActivity extends AppCompatActivity {
         editText = (EmojiconEditText) findViewById(R.id.sendmess);
 
         imageView = findViewById(R.id.imagebutton);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         read();
 
@@ -166,11 +173,12 @@ public class UserChatActivity extends AppCompatActivity {
                     circleImageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(getApplicationContext(), FullScreenImageActivity.class);
+                            Intent intent = new Intent(UserChatActivity.this, FullScreenImageActivity.class);
                             ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(UserChatActivity.this,
                                     circleImageView, circleImageView.getTransitionName());
                             intent.putExtra("url", url);
-                            startActivity(intent,activityOptionsCompat.toBundle());
+                            intent.putExtra("name", name);
+                            startActivity(intent, activityOptionsCompat.toBundle());
                         }
                     });
                 }
@@ -202,13 +210,15 @@ public class UserChatActivity extends AppCompatActivity {
         toolbar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(),ViewprofileActivity.class);
-                ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(UserChatActivity.this,
-                        circleImageView, circleImageView.getTransitionName());
-                intent.putExtra("number",number);
-                intent.putExtra("url",url);
-                intent.putExtra("name",name);
-                startActivity(intent,activityOptionsCompat.toBundle());
+                Intent intent = new Intent(getApplicationContext(), ViewprofileActivity.class);
+                Pair<View, String> pair = Pair.create(findViewById(R.id.circleImageView), circleImageView.getTransitionName());
+                Pair<View, String> pair2 = Pair.create(findViewById(R.id.name), findViewById(R.id.name).getTransitionName());
+
+                ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(UserChatActivity.this,pair, pair2);
+                intent.putExtra("number", number);
+                intent.putExtra("url", url);
+                intent.putExtra("name", name);
+                startActivity(intent, activityOptionsCompat.toBundle());
             }
         });
     }

@@ -62,7 +62,7 @@ public class ContactFragment extends Fragment {
 
 
     private void getContactList() {
-        Cursor phones = getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME+" ASC");
         while (phones.moveToNext()) {
             final String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
@@ -85,7 +85,7 @@ public class ContactFragment extends Fragment {
                     String phone;
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         phone = dataSnapshot.child("phoneNumber").getValue(String.class);
-                        Cursor phones = getContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+                        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
                         while (phones.moveToNext()) {
                             final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                             String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));

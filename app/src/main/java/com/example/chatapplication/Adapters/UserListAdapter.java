@@ -24,15 +24,16 @@ import java.util.ArrayList;
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserListRecyclerViewHolder> {
     ArrayList<UserObject> userList;
     private RecyclerViewClickListener listener;
-    public UserListAdapter(ArrayList<UserObject> userList, RecyclerViewClickListener listener){
-        this.userList =  userList;
+
+    public UserListAdapter(ArrayList<UserObject> userList, RecyclerViewClickListener listener) {
+        this.userList = userList;
         this.listener = listener;
     }
 
     @NonNull
     @Override
     public UserListRecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.userlist,null,false);
+        View layoutView = LayoutInflater.from(parent.getContext()).inflate(R.layout.userlist, null, false);
         RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutView.setLayoutParams(lp);
 
@@ -44,6 +45,21 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
     public void onBindViewHolder(@NonNull final UserListRecyclerViewHolder holder, final int position) {
 
         final String phone = userList.get(position).getPhone();
+        try {
+            if (!userList.get(position).getPhone().equals(userList.get(position + 1).getPhone())) {
+
+                holder.tname.setText(userList.get(position).getName());
+                String ph = phone.substring(3);
+                holder.tphone.setText(ph);
+                holder.progressBar.setVisibility(View.GONE);
+            }else{
+                holder.linearLayout.setVisibility(View.GONE);
+                holder.progressBar.setVisibility(View.GONE);
+            }
+        }catch (Exception e){
+            holder.linearLayout.setVisibility(View.GONE);
+            holder.progressBar.setVisibility(View.GONE);
+        }
 //
 //        final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("Users");
 //        userDb.orderByChild("phoneNumber").equalTo(phone)
@@ -51,10 +67,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
 //                    @Override
 //                    public void onDataChange(@NonNull DataSnapshot snapshot) {
 //                        if (snapshot.exists()){
-                            holder.tname.setText(userList.get(position).getName());
-                            String ph = phone.substring(3);
-                            holder.tphone.setText(ph);
-                            holder.progressBar.setVisibility(View.GONE);
+
 
 //                        }else{
 //                            holder.linearLayout.setVisibility(View.GONE);
@@ -76,6 +89,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
     public int getItemCount() {
         return userList.size();
     }
+
     @Override
     public long getItemId(int position) {
         return position;
@@ -86,10 +100,11 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
         return position;
     }
 
-    public class UserListRecyclerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class UserListRecyclerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView tname, tphone;
         LinearLayout linearLayout;
         ProgressBar progressBar;
+
         public UserListRecyclerViewHolder(@NonNull View view) {
             super(view);
             tname = view.findViewById(R.id.name);
@@ -106,7 +121,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
         }
     }
 
-    public interface RecyclerViewClickListener{
+    public interface RecyclerViewClickListener {
         void onClick(View v, int position);
     }
 }

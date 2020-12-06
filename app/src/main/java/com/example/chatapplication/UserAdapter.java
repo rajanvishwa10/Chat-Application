@@ -1,5 +1,6 @@
 package com.example.chatapplication;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -56,7 +58,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull final UserAdapter.ViewHolder holder, final int position) {
 
         final String number = chatList.get(position).getPhoneNumber();
-        lastMessage(number,holder.textView2);
+        lastMessage(number, holder.textView2);
         Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         while (phones.moveToNext()) {
             final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
@@ -84,13 +86,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             final String url = snapshot.child("profileImage").getValue(String.class);
                             url1 = snapshot.child("profileImage").getValue(String.class);
-                            try{
-                                if(!url.isEmpty()){
+                            try {
+                                if (!url.isEmpty()) {
                                     Glide.with(context).load(url).into(holder.imageView);
-                                }else{
+                                } else {
                                     holder.imageView.setImageResource(R.drawable.user);
                                 }
-                            }catch (NullPointerException e){
+                            } catch (NullPointerException e) {
                                 holder.imageView.setImageResource(R.drawable.user);
                             }
 
@@ -98,8 +100,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                                 @Override
                                 public void onClick(View v) {
                                     Intent intent = new Intent(context, FullScreenImageActivity.class);
+                                    ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                                            (Activity) context, holder.imageView, holder.imageView.getTransitionName());
                                     intent.putExtra("url", url);
-                                    context.startActivity(intent);
+                                    intent.putExtra("name", contactName);
+                                    context.startActivity(intent, activityOptionsCompat.toBundle());
                                 }
                             });
                         }
@@ -152,7 +157,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                             chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
 
                         lastmess = chat.getMessage();
-                        if(lastmess.contains("https://")){
+                        if (lastmess.contains("https://")) {
                             lastmess = "Image";
                         }
 
