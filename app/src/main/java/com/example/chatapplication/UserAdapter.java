@@ -36,12 +36,12 @@ import es.dmoral.toasty.Toasty;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     private final Context context;
-    private final List<RecentChat> chatList;
+    private final List<Chatlist> chatList;
     String url1;
     String lastmess;
     String senderNumber;
 
-    public UserAdapter(Context context, List<RecentChat> chatList) {
+    public UserAdapter(Context context, List<Chatlist> chatList) {
         this.context = context;
         this.chatList = chatList;
     }
@@ -57,7 +57,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull final UserAdapter.ViewHolder holder, final int position) {
 
-        final String number = chatList.get(position).getPhoneNumber();
+        final String number = chatList.get(position).getId();
         lastMessage(number, holder.textView2);
         Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         while (phones.moveToNext()) {
@@ -87,7 +87,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                             final String url = snapshot.child("profileImage").getValue(String.class);
                             url1 = snapshot.child("profileImage").getValue(String.class);
                             try {
-                                if (!url.isEmpty()) {
+                                if (url != null) {
                                     Glide.with(context).load(url).into(holder.imageView);
                                 } else {
                                     holder.imageView.setImageResource(R.drawable.user);

@@ -12,15 +12,14 @@
         android:id="@+id/back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="17dp"
         android:background="@drawable/roundbuttonwhite"
         android:onClick="back"
         android:src="@drawable/ic_arrow_back_black_24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/textView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.025"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textView"
         app:layout_constraintVertical_bias="0.014" />
 
     <TextView
@@ -31,7 +30,7 @@
         android:gravity="top"
         android:text="Welcome to Let's Chat!"
         android:textColor="@color/colorBlack"
-        android:textSize="25sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.366"
@@ -40,16 +39,16 @@
 
     <TextView
         android:id="@+id/textView2"
-        android:layout_width="342dp"
-        android:layout_height="62dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:text="Please enter your country code and phone number to continue"
         android:textAlignment="center"
         android:textColor="#A7000000"
-        android:textSize="20sp"
+        android:layout_marginHorizontal="20dp"
+        android:textSize="17sp"
         android:textStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.492"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
@@ -65,7 +64,7 @@
         <EditText
             android:id="@+id/countrycode"
             android:layout_width="59dp"
-            android:layout_height="51dp"
+            android:layout_height="match_parent"
             android:ems="10"
             android:hint="91"
             android:inputType="phone"
@@ -81,14 +80,13 @@
         <EditText
             android:id="@+id/phonenumber"
             android:layout_width="match_parent"
-            android:layout_height="51dp"
+            android:layout_height="wrap_content"
             android:ems="10"
             android:hint="Phone Number"
             android:inputType="phone"
             android:maxLength="10"
+            android:textColorHint="#87000000"
             android:textColor="@color/colorBlack"
-            android:textColorHint="@color/colorBlack"
-            android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView" />
 
@@ -113,20 +111,20 @@
         app:layout_constraintTop_toBottomOf="@+id/linear" />
 
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="57dp"
-        android:layout_height="21dp"
-        android:layout_marginBottom="5dp"
-        android:text="RAJAN"
-        android:textAlignment="center"
-        android:textColor="@color/colorBlack"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button2"
-        app:layout_constraintVertical_bias="1.0" />
+<!--    <TextView-->
+<!--        android:id="@+id/textView3"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="5dp"-->
+<!--        android:text="RAJAN"-->
+<!--        android:textAlignment="center"-->
+<!--        android:textColor="@color/colorBlack"-->
+<!--        android:textSize="18sp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/button2"-->
+<!--        app:layout_constraintVertical_bias="0.988" />-->
 
     <ImageView
         android:id="@+id/imageView"

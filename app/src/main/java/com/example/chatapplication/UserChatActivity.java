@@ -9,7 +9,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
-import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,28 +23,23 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Message;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.example.chatapplication.Adapters.Chats;
 import com.example.chatapplication.Adapters.MessageAdapter;
-import com.example.chatapplication.Adapters.User;
-import com.example.chatapplication.Adapters.UserListAdapter;
-import com.example.chatapplication.Adapters.UserObject;
 import com.example.chatapplication.Fragments.APIService;
-import com.example.chatapplication.Notification.Client;
-import com.example.chatapplication.Notification.Data;
-import com.example.chatapplication.Notification.MyResponse;
-import com.example.chatapplication.Notification.Sender;
-import com.example.chatapplication.Notification.Token;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -55,11 +49,14 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -74,16 +71,12 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import es.dmoral.toasty.Toasty;
-import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class UserChatActivity extends AppCompatActivity {
     Toolbar toolbar;
     EmojiconEditText editText;
-    ImageView imageView;
+//    ImageView imageView;
     CircleImageView circleImageView;
     String number, senderNumber, url;
     DatabaseReference myRef;
@@ -92,6 +85,8 @@ public class UserChatActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     Bitmap bitmap;
     APIService apiService;
+    String fcm_url = "https://fcm.googleapis.com/fcm/send";
+    RequestQueue requestQueue;
     ValueEventListener valueEventListener;
     DatabaseReference databaseReference;
     boolean notify = false;
@@ -102,6 +97,9 @@ public class UserChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_chat);
+
+        requestQueue = Volley.newRequestQueue(this);
+
         recyclerView = findViewById(R.id.recycler);
         recyclerView.setHasFixedSize(true);
         chats = new ArrayList<>();
@@ -110,7 +108,7 @@ public class UserChatActivity extends AppCompatActivity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         getWindow().setNavigationBarColor(Color.parseColor("#EDE9E9"));
 
-        apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
+//        apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
 
         number = getIntent().getStringExtra("number");
 
@@ -141,7 +139,7 @@ public class UserChatActivity extends AppCompatActivity {
 
         editText = (EmojiconEditText) findViewById(R.id.sendmess);
 
-        imageView = findViewById(R.id.imagebutton);
+//        imageView = findViewById(R.id.imagebutton);
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         read();
@@ -288,6 +286,7 @@ public class UserChatActivity extends AppCompatActivity {
 
                             chats.add(chat);
 
+
                         }
                         //chats.add(chat);
                         messageAdapter = new MessageAdapter(UserChatActivity.this, chats);
@@ -321,7 +320,7 @@ public class UserChatActivity extends AppCompatActivity {
 
     }
 
-    private void sendMessage(String Sender, final String Receiver, String Message) {
+    private void sendMessage(final String Sender, final String Receiver, final String Message) {
         final Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy h:mm a", Locale.getDefault());
         final String formattedDate = df.format(c);
@@ -331,7 +330,7 @@ public class UserChatActivity extends AppCompatActivity {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy h:mm:ss:SSS", Locale.getDefault());
         String date = dateFormat.format(c);
-        System.out.println(date);
+        final long timeInMillIs = System.currentTimeMillis();
 
         Map<String, Object> messages = new HashMap<>();
         messages.put("Sender", Sender);
@@ -339,11 +338,40 @@ public class UserChatActivity extends AppCompatActivity {
         messages.put("Message", Message);
         messages.put("Date", formattedDate);
         messages.put("isseen", false);
-        databaseReference.child(c.toString()).setValue(messages).addOnCompleteListener(new OnCompleteListener<Void>() {
+        databaseReference.child(timeInMillIs + "").setValue(messages).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isComplete()) {
+                    final DatabaseReference databaseReference1 = FirebaseDatabase.getInstance().getReference("Chatlist")
+                            .child(Sender).child(Receiver);
+                    HashMap<String, Object> hashMap = new HashMap<>();
+                    hashMap.put("date", timeInMillIs);
+                    databaseReference1.updateChildren(hashMap);
+
+                    final DatabaseReference databaseReference2 = FirebaseDatabase.getInstance().getReference("Chatlist")
+                            .child(Receiver).child(Sender);
+
+                    databaseReference2.updateChildren(hashMap);
                     editText.setText(null);
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference myRef = database.getReference("Tokens");
+                    myRef.addValueEventListener(new ValueEventListener() {
+
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                String username = dataSnapshot.child(Receiver).child("token").getValue(String.class);
+                                sendNotification(username , Sender);
+                            }
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+
                 } else {
                     System.out.println(task);
                 }
@@ -363,6 +391,7 @@ public class UserChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
                     databaseReference1.child("id").setValue(Receiver);
+                    databaseReference1.child("date").setValue(timeInMillIs);
                 }
             }
 
@@ -371,73 +400,33 @@ public class UserChatActivity extends AppCompatActivity {
 
             }
         });
-//        final String msg = Message;
-//        databaseReference = FirebaseDatabase.getInstance().getReference("Users")
-//                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-//        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                System.out.println(snapshot);
-//                User userObject = snapshot.getValue(User.class);
-//                if (notify){
-//                    sendNot(Receiver, userObject.getPhoneNumber(), msg);
-//                    System.out.println(userObject.getPhoneNumber());
-//                }
-//                notify = false;
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
+
+        final DatabaseReference databaseReference2 = FirebaseDatabase.getInstance().getReference("Chatlist")
+                .child(Receiver).child(Sender);
+
+        databaseReference2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    databaseReference2.child("id").setValue(Sender);
+                    databaseReference2.child("date").setValue(timeInMillIs);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
-//    private void sendNot(String receiver, final String phone, final String msg) {
-//        DatabaseReference tokens = FirebaseDatabase.getInstance().getReference("Tokens");
-//        Query query = tokens.orderByKey().equalTo(receiver);
-//        query.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-//                    Token token = dataSnapshot.getValue(Token.class);
-//                    Data data = new Data(FirebaseAuth.getInstance().getCurrentUser().getUid(),
-//                            R.mipmap.ic_launcher, phone + ": " + msg, "New Message", senderNumber);
-//
-//                    Sender sender = new Sender(data, token.getToken());
-//                    apiService.sendNotification(sender)
-//                            .enqueue(new Callback<MyResponse>() {
-//                                @Override
-//                                public void onResponse(Call<MyResponse> call, Response<MyResponse> response) {
-//                                    if (response.code() == 200) {
-//                                        if (response.body().success != 1) {
-//                                            Toast.makeText(UserChatActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-//                                        }
-//                                    }
-//                                }
-//
-//                                @Override
-//                                public void onFailure(Call<MyResponse> call, Throwable t) {
-//
-//                                }
-//                            });
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
+
+//    public void emojiview(View view) {
+//        EmojIconActions emojIconActions = new EmojIconActions(this, view, editText, imageView);
+//        emojIconActions.ShowEmojIcon();
+//        emojIconActions.setUseSystemEmoji(true);
+//        editText.setUseSystemDefault(true);
 //    }
-
-
-    public void emojiview(View view) {
-        EmojIconActions emojIconActions = new EmojIconActions(this, view, editText, imageView);
-        emojIconActions.ShowEmojIcon();
-        emojIconActions.setUseSystemEmoji(true);
-        editText.setUseSystemDefault(true);
-    }
 
     public void image(View view) {
         request();
@@ -570,6 +559,44 @@ public class UserChatActivity extends AppCompatActivity {
         String formattedDate = df.format(c);
         status("Last Seen " + formattedDate);
 
+    }
+
+    private void sendNotification(String receiver, String sender) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("to", receiver);
+
+            JSONObject jsonObject1 = new JSONObject();
+            jsonObject1.put("title", sender);
+            jsonObject1.put("body", "sent you a message");
+
+            jsonObject.put("notification", jsonObject1);
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, fcm_url, jsonObject, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    System.out.println(response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            })
+            {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("content-type", "application/json");
+                    map.put("authorization", "key = AAAA_dUmwyo:APA91bHNBkl4NYBYDdgUwdZGXsIjTkWa4N0UNkOgRbiNdSqpIzYGvb3n4o5Rjo4pkNWstbzAePDjgNVomE9qJBP_n0_3vHZbwqaZomnQ89EnNov7FrRmOkqUIXfo-vfFKAzaXbfjd3Qj");
+
+                    return map;
+                }
+            };
+            requestQueue.add(request);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
 }

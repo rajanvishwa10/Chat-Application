@@ -14,9 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.chatapplication.Adapters.UserObject;
 import com.example.chatapplication.Chatlist;
-import com.example.chatapplication.Notification.Token;
 import com.example.chatapplication.R;
 import com.example.chatapplication.RecentChat;
 import com.example.chatapplication.UserAdapter;
@@ -29,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -72,8 +71,14 @@ public class ChatFragment extends Fragment {
                 for (DataSnapshot dataSnapshot: snapshot.getChildren()){
                     Chatlist chatlist = dataSnapshot.getValue(Chatlist.class);
                     userList.add(chatlist);
+                    Collections.sort(userList);
+                    Collections.reverse(userList);
+
                 }
-                chatList();
+                userAdapter = new UserAdapter(getContext(), userList);
+                progressDialog.dismiss();
+                recyclerView.setAdapter(userAdapter);
+//                chatList();
             }
 
             @Override
@@ -82,43 +87,42 @@ public class ChatFragment extends Fragment {
             }
         });
 
-        updateToken(FirebaseInstanceId.getInstance().getToken());
+//        updateToken(FirebaseInstanceId.getInstance().getToken());
 
         return view;
     }
 
-    private void updateToken(String token){
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
-        Token token1 = new Token(token);
-        databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(token1);
-    }
+//    private void updateToken(String token){
+//        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
+////        Token token1 = new Token(token);
+//        databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(token1);
+//    }
 
-    private void chatList(){
-        chatList = new ArrayList<>();
-        databaseReference = FirebaseDatabase.getInstance().getReference("Users");
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                chatList.clear();
-                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
-                    RecentChat userObject = dataSnapshot.getValue(RecentChat.class);
-                    for(Chatlist chatlist : userList){
-                        if(userObject.getPhoneNumber().equals(chatlist.getId())){
-                            chatList.add(userObject);
-                        }
-                    }
-                }
-                userAdapter = new UserAdapter(getContext(), chatList);
-                progressDialog.dismiss();
-                recyclerView.setAdapter(userAdapter);
-            }
+//    private void chatList(){
+//        chatList = new ArrayList<>();
+//        databaseReference = FirebaseDatabase.getInstance().getReference("Users");
+//        databaseReference.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                chatList.clear();
+//                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
+//                    RecentChat userObject = dataSnapshot.getValue(RecentChat.class);
+//                    for(Chatlist chatlist : userList){
+//                        if(userObject.getPhoneNumber().equals(chatlist.getId())){
+//                            chatList.add(userObject);
+//                        }
+//                    }
+//                }
+//                userAdapter = new UserAdapter(getContext(), chatList);
+//                progressDialog.dismiss();
+//                recyclerView.setAdapter(userAdapter);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+//    }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
-
-//    pr
 }

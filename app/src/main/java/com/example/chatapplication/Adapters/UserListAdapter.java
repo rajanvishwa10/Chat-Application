@@ -20,14 +20,21 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserListRecyclerViewHolder> {
     ArrayList<UserObject> userList;
-    private RecyclerViewClickListener listener;
+    private final RecyclerViewClickListener listener;
 
     public UserListAdapter(ArrayList<UserObject> userList, RecyclerViewClickListener listener) {
         this.userList = userList;
         this.listener = listener;
+    }
+
+    public void setUserList(ArrayList<UserObject> userList){
+        this.userList = userList;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -37,29 +44,28 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
         RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutView.setLayoutParams(lp);
 
-        UserListRecyclerViewHolder rcv = new UserListRecyclerViewHolder(layoutView);
-        return rcv;
+        return new UserListRecyclerViewHolder(layoutView);
     }
 
     @Override
     public void onBindViewHolder(@NonNull final UserListRecyclerViewHolder holder, final int position) {
 
         final String phone = userList.get(position).getPhone();
-        try {
-            if (!userList.get(position).getPhone().equals(userList.get(position + 1).getPhone())) {
-
+//        try {
+//            if (!userList.get(position).getPhone().equals(userList.get(position + 1).getPhone())) {
+//
                 holder.tname.setText(userList.get(position).getName());
                 String ph = phone.substring(3);
                 holder.tphone.setText(ph);
                 holder.progressBar.setVisibility(View.GONE);
-            }else{
-                holder.linearLayout.setVisibility(View.GONE);
-                holder.progressBar.setVisibility(View.GONE);
-            }
-        }catch (Exception e){
-            holder.linearLayout.setVisibility(View.GONE);
-            holder.progressBar.setVisibility(View.GONE);
-        }
+//            }else{
+//                holder.linearLayout.setVisibility(View.GONE);
+//                holder.progressBar.setVisibility(View.GONE);
+//            }
+//        }catch (Exception e){
+//            holder.linearLayout.setVisibility(View.GONE);
+//            holder.progressBar.setVisibility(View.GONE);
+//        }
 //
 //        final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("Users");
 //        userDb.orderByChild("phoneNumber").equalTo(phone)

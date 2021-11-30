@@ -106,7 +106,7 @@ public class OtpActivity extends AppCompatActivity {
 
         @Override
         public void onVerificationFailed(@NonNull FirebaseException e) {
-            Toast.makeText(OtpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(OtpActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
             Log.d("error", e.getMessage());
         }
 
@@ -155,12 +155,12 @@ public class OtpActivity extends AppCompatActivity {
                                 }
                             });
                         } else {
-                            Toast.makeText(OtpActivity.this, "Invalid Otp", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(OtpActivity.this, "Invalid Otp", Toast.LENGTH_LONG).show();
                             progressDialog.cancel();
                             // Sign in failed, display a left_message and update the UI
                             Log.w("signinfail", "signInWithCredential:failure", task.getException());
                             if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-                                Toast.makeText(OtpActivity.this, "Invalid Otp", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(OtpActivity.this, "Invalid Otp", Toast.LENGTH_LONG).show();
                             }
                         }
                     }

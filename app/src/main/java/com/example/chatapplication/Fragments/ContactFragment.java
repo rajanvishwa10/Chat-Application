@@ -36,6 +36,8 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,10 +45,10 @@ import java.util.Set;
 
 public class ContactFragment extends Fragment {
     private RecyclerView mUserList;
-    private RecyclerView.Adapter mUserListAdapter;
+    private UserListAdapter mUserListAdapter;
     private UserListAdapter.RecyclerViewClickListener listener;
     private RecyclerView.LayoutManager mUserListLayoutManager;
-    ArrayList<UserObject> contactList, userlist; //userList;
+    ArrayList<UserObject> userlist; //userList;
     View view;
     String phone;
 
@@ -70,7 +72,6 @@ public class ContactFragment extends Fragment {
             phone = phone.replaceAll("\\s", "");
 //
             UserObject mcontact = new UserObject(name, phone);
-            contactList.add(mcontact);
             checkNumber(mcontact);
 
         }
@@ -91,13 +92,16 @@ public class ContactFragment extends Fragment {
                             String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                             number = number.replaceAll("\\s", "");
                             if (number.equals(phone)) {
-                                UserObject userObject1 = new UserObject(contactName, userObject.getPhone());
+                                UserObject userObject1 = new UserObject(contactName, number);
                                 userlist.add(userObject1);
+                                HashSet<UserObject> hashSet = new LinkedHashSet<>(userlist);
+                                userlist.clear();
+                                userlist.addAll(hashSet);
+                                mUserListAdapter.setUserList(userlist);
                                 mUserListAdapter.notifyDataSetChanged();
                             }
                         }
                     }
-//
                 }
             }
 
@@ -106,6 +110,7 @@ public class ContactFragment extends Fragment {
 
             }
         });
+
     }
 
     @Override
@@ -114,7 +119,6 @@ public class ContactFragment extends Fragment {
         setOnClickListener();
         view = inflater.inflate(R.layout.fragment_contact, container, false);
         mUserList = (RecyclerView) view.findViewById(R.id.recycler);
-        contactList = new ArrayList<>();
         userlist = new ArrayList<>();
         mUserList.setNestedScrollingEnabled(false);
         mUserList.setHasFixedSize(false);
@@ -134,7 +138,7 @@ public class ContactFragment extends Fragment {
         listener = new UserListAdapter.RecyclerViewClickListener() {
             @Override
             public void onClick(View v, int position) {
-                Intent intent = new Intent(getContext().getApplicationContext(), UserChatActivity.class);
+                Intent intent = new Intent(getContext(), UserChatActivity.class);
                 intent.putExtra("name", userlist.get(position).getName());
                 intent.putExtra("number", userlist.get(position).getPhone());
                 startActivity(intent);

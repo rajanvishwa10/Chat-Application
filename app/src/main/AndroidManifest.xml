@@ -14,18 +14,27 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ViewprofileActivity"/>
-        <activity android:name=".ProfilePicActivity" />
-        <activity android:name=".FullScreenImageActivity" />
+        <activity
+            android:name=".ViewprofileActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ProfilePicActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".FullScreenImageActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".UserChatActivity"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity2"
             android:label="@string/title_activity_main2"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".StartActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,10 +44,31 @@
         </activity>
         <activity
             android:name=".OtpActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <service
+            android:name=".Notification.NotificationService"
+            android:directBootAware="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher_foreground" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="general_channel_id" />
+
     </application>
 
 </manifest>
