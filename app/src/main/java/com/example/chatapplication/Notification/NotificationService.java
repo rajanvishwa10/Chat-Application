@@ -1,9 +1,12 @@
 package com.example.chatapplication.Notification;
 
+import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.ContactsContract;
@@ -16,18 +19,22 @@ import com.example.chatapplication.Adapters.UserObject;
 import com.example.chatapplication.MainActivity;
 import com.example.chatapplication.MainActivity2;
 import com.example.chatapplication.R;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 public class NotificationService extends FirebaseMessagingService {
@@ -71,21 +78,24 @@ public class NotificationService extends FirebaseMessagingService {
         generalChannel();
 
         if (remoteMessage.getNotification() != null) {
-            String title = remoteMessage.getNotification().getTitle();
-            String body = remoteMessage.getNotification().getBody();
+            final String title = remoteMessage.getNotification().getTitle();
+            final String body = remoteMessage.getNotification().getBody();
 
-            Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-            while (phones.moveToNext()) {
-                final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                number = number.replaceAll("\\s", "");
-                if (title.contains(number)) {
-                    title = contactName;
-                    break;
-                }
+//            Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+//            while (phones.moveToNext()) {
+//                final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+//                String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+//                number = number.replaceAll("\\s", "");
+//                if (title!= null && title.contains(number)) {
+//                    title = contactName;
+//                    break;
+//                }
+//            }
+
+//
+            if(!isRunning(getApplicationContext())){
+                sendNotification(title, body);
             }
-
-            sendNotification(title, body);
 
         }
 
@@ -122,4 +132,15 @@ public class NotificationService extends FirebaseMessagingService {
         managerCompat.notify(12, builder.build());
     }
 
+    public boolean isRunning(Context ctx) {
+        ActivityManager activityManager = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
+
+        List<ActivityManager.RunningTaskInfo> tasks = activityManager.getRunningTasks(Integer.MAX_VALUE);
+
+        for (ActivityManager.RunningTaskInfo task : tasks) {
+            if (ctx.getPackageName().equalsIgnoreCase(task.baseActivity.getPackageName()))
+                return true;
+        }
+        return false;
+    }
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,7 +59,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull final UserAdapter.ViewHolder holder, final int position) {
 
         final String number = chatList.get(position).getId();
-        lastMessage(number, holder.textView2);
+        lastMessage(number, holder.textView2, holder.countTv);
         Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
         while (phones.moveToNext()) {
             final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
@@ -129,7 +130,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView textView, textView2;
+        TextView textView, textView2, countTv;
         LinearLayout linearLayout;
         CircleImageView imageView;
 
@@ -140,10 +141,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             textView2 = itemView.findViewById(R.id.lastMessage);
             linearLayout = itemView.findViewById(R.id.linear);
             imageView = itemView.findViewById(R.id.circleImageView2);
+            countTv = itemView.findViewById(R.id.unseenCount);
         }
     }
-
-    private void lastMessage(final String number, final TextView lastmsg) {
+    int count = 0;
+    private void lastMessage(final String number, final TextView lastmsg, final TextView countTv) {
         lastmess = "default";
         SharedPreferences sharedPreferences = context.getSharedPreferences("userNumber", Context.MODE_PRIVATE);
         senderNumber = sharedPreferences.getString("number", "");
@@ -161,6 +163,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                             lastmess = "Image";
                         }
 
+                        if (!chat.getSender().equals(senderNumber)) {
+                            if (!chat.isIsseen()) {
+                                count++;
+                            }
+                        }
                     }
                 }
                 if ("default".equals(lastmess)) {
@@ -168,6 +175,17 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                 } else {
                     lastmsg.setText(lastmess);
                 }
+
+                if (count > 0) {
+                    lastmsg.setTypeface(lastmsg.getTypeface(), Typeface.BOLD);
+                    countTv.setVisibility(View.VISIBLE);
+                    countTv.setText("" + count);
+                    count = 0;
+                } else {
+                    lastmsg.setTypeface(lastmsg.getTypeface(), Typeface.NORMAL);
+                    countTv.setVisibility(View.GONE);
+                }
+
                 lastmess = "default";
             }
 
