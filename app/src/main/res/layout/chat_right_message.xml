@@ -8,19 +8,21 @@
         android:id="@+id/cardView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="50dp"
         android:layout_marginTop="10dp"
+        android:layout_marginEnd="5dp"
         android:layout_marginBottom="5dp"
         android:visibility="gone"
-        app:cardCornerRadius="10dp"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="5dp"
-        android:layout_marginStart="50dp">
+        app:cardCornerRadius="10dp">
+
         <ImageView
             android:id="@+id/image"
-            android:visibility="gone"
-            android:scaleType="centerCrop"
             android:layout_width="250dp"
-            android:layout_height="250dp"/>
+            android:layout_height="250dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/imageTime"
             android:layout_width="wrap_content"
@@ -28,9 +30,9 @@
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="5dp"
-            android:visibility="gone"
             android:text="sdasd"
-            android:textColor="#BEFFFFFF" />
+            android:textColor="#BEFFFFFF"
+            android:visibility="gone" />
     </androidx.cardview.widget.CardView>
 
     <TextView
@@ -38,11 +40,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/linearLayout"
-        android:textSize="15sp"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="-10dp"
         android:layout_marginEnd="10dp"
-        android:text="seen" />
+        android:text="seen"
+        android:textSize="15sp" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -54,29 +56,31 @@
         android:layout_marginTop="4dp"
         android:layout_marginEnd="10dp"
         android:background="@drawable/right_message"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/chats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="10dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
+            android:gravity="center|start"
+            android:padding="5dp"
             android:text="hello"
-            android:textIsSelectable="true"
+            android:maxWidth="200dp"
             android:textColor="@color/colorBlack"
+            android:textIsSelectable="true"
             android:textSize="16sp" />
 
         <TextView
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginEnd="15dp"
+            android:layout_gravity="end"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="5dp"
             android:layout_marginBottom="1dp"
-            android:text="sdasd"/>
+            android:text="sdasd"
+            android:textSize="13sp" />
     </LinearLayout>
 
 </RelativeLayout>

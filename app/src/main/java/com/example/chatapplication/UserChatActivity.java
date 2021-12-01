@@ -39,7 +39,6 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.example.chatapplication.Adapters.Chats;
 import com.example.chatapplication.Adapters.MessageAdapter;
-import com.example.chatapplication.Fragments.APIService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -50,7 +49,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -84,7 +82,6 @@ public class UserChatActivity extends AppCompatActivity {
     List<Chats> chats;
     RecyclerView recyclerView;
     Bitmap bitmap;
-    APIService apiService;
     String fcm_url = "https://fcm.googleapis.com/fcm/send";
     RequestQueue requestQueue;
     ValueEventListener valueEventListener;
@@ -108,7 +105,6 @@ public class UserChatActivity extends AppCompatActivity {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         getWindow().setNavigationBarColor(Color.parseColor("#EDE9E9"));
 
-//        apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
 
         number = getIntent().getStringExtra("number");
 

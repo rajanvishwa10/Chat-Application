@@ -55,30 +55,32 @@
         android:layout_marginVertical="10dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="4dp"
-        android:background="@drawable/left_message">
+        android:background="@drawable/left_message"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/chats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
-            android:layout_marginBottom="5dp"
-            android:gravity="center"
-            android:padding="10dp"
+            android:gravity="center|start"
+            android:padding="5dp"
             android:text="hello"
+            android:maxWidth="200dp"
             android:textColor="@color/colorWhite"
             android:textIsSelectable="true"
             android:textSize="16sp" />
-
 
         <TextView
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginEnd="15dp"
+            android:layout_gravity="end"
             android:layout_marginBottom="1dp"
             android:text="sdasd"
+            android:layout_marginEnd="5dp"
+            android:textSize="13sp"
+            android:layout_marginStart="40dp"
             android:textColor="@color/colorWhite" />
     </LinearLayout>
 </RelativeLayout>
