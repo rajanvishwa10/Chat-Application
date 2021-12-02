@@ -1,5 +1,6 @@
 package com.example.chatapplication.Notification;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,14 +8,30 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Icon;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.Person;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.chatapplication.Adapters.UserObject;
 import com.example.chatapplication.MainActivity;
 import com.example.chatapplication.MainActivity2;
@@ -32,6 +49,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -42,6 +62,10 @@ public class NotificationService extends FirebaseMessagingService {
     private static final String GENERAL_CHANNEL = "General Channel";
 
     private static final String GENERAL_CHANNEL_ID = "general_channel_id";
+
+    private static final String CHAT_CHANNEL = "Chats";
+
+    private static final String CHAT_CHANNEL_ID = "chat_channel_id";
 
     //todo setting up local notification as well
 
@@ -76,28 +100,29 @@ public class NotificationService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
 
         generalChannel();
+        chatChannel();
 
-        if (remoteMessage.getNotification() != null) {
-            final String title = remoteMessage.getNotification().getTitle();
-            final String body = remoteMessage.getNotification().getBody();
+        String title;
+        String body;
 
-//            Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-//            while (phones.moveToNext()) {
-//                final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-//                String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-//                number = number.replaceAll("\\s", "");
-//                if (title!= null && title.contains(number)) {
-//                    title = contactName;
-//                    break;
-//                }
-//            }
+        if (!isRunning(getApplicationContext())) {
+            title = remoteMessage.getData().get("title2");
+            body = remoteMessage.getData().get("body2");
+            String channel_id = remoteMessage.getData().get("channel_id");
 
-//
-            if(!isRunning(getApplicationContext())){
-                sendNotification(title, body);
+            Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+            while (phones.moveToNext()) {
+                String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                number = number.replaceAll("\\s", "");
+                if (title != null && title.contains(number)) {
+                    title = contactName;
+                }
             }
-
+            sendNotification(title, body, channel_id);
+            phones.close();
         }
+
 
     }
 
@@ -112,24 +137,83 @@ public class NotificationService extends FirebaseMessagingService {
         }
     }
 
+    private void chatChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(
+                    CHAT_CHANNEL_ID, CHAT_CHANNEL,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(notificationChannel);
+        }
+    }
 
-    private void sendNotification(String title, String body) {
+
+    private void sendNotification(final String title, final String body, final String channel_id) {
 
         Intent notifyIntent = new Intent(getApplicationContext(), MainActivity2.class);
-        PendingIntent notifyPendingIntent = PendingIntent.getActivity(
+        notifyIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        final PendingIntent notifyPendingIntent = PendingIntent.getActivity(
                 this, 0, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT
         );
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), GENERAL_CHANNEL_ID)
-                .setContentTitle(title)
-                .setContentText(body)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setContentIntent(notifyPendingIntent)
-                .setSmallIcon(R.drawable.icons8_chat_500px_3)
-                .setAutoCancel(true);
+        Glide.with(this).asBitmap().load("https://firebasestorage.googleapis.com/v0/b/chat-app-2280b.appspot.com/o/ProfileImages%2FwpvYppFloBWxKUaqmxpg06Pt7Lv2.jpeg?alt=media&token=cc326184-d00a-4ffd-a179-bd5bb8d69044").listener(new RequestListener<Bitmap>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                return false;
+            }
 
-        NotificationManagerCompat managerCompat = NotificationManagerCompat.from(getApplicationContext());
-        managerCompat.notify(12, builder.build());
+            @Override
+            public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                Person user = new Person.Builder()
+                        .setIcon(IconCompat.createWithBitmap(resource))
+                        .setName(title).build();
+                createShortCut(user);
+
+                NotificationCompat.MessagingStyle messagingStyle = new
+                        NotificationCompat.MessagingStyle(user);
+                messagingStyle.setConversationTitle("New Message");
+                NotificationCompat.MessagingStyle.Message notificationMessage = new
+                        NotificationCompat.MessagingStyle.Message(
+                        body,
+                        System.currentTimeMillis(),
+                        user
+                );
+                messagingStyle.addMessage(notificationMessage);
+
+
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channel_id)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setContentIntent(notifyPendingIntent)
+                        .setSmallIcon(R.drawable.icons8_chat_500px_3)
+                        .setStyle(messagingStyle)
+                        .setAutoCancel(true)
+                        .setShortcutId("Chats");
+
+                NotificationManagerCompat managerCompat = NotificationManagerCompat.from(getApplicationContext());
+                managerCompat.notify(12, builder.build());
+                return false;
+            }
+        }).submit();
+
+    }
+
+    private void createShortCut(Person user) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            Intent messageIntent = new Intent(getApplicationContext(), MainActivity2.class);
+            messageIntent.setAction(Intent.ACTION_VIEW);
+
+            ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(getApplicationContext(), "Chats").
+                    setShortLabel("Chats").
+                    setLongLabel("New Message").
+                    setLongLived(true).
+                    setPerson(user).
+                    setIntent(messageIntent).
+                    setDisabledMessage("Disabled").
+                    setIcon(IconCompat.createWithResource(getApplicationContext(), R.drawable.ic_baseline_chat_24)).build();
+            ShortcutManagerCompat.addDynamicShortcuts(this, Collections.singletonList(shortcutInfoCompat));
+        }
+
     }
 
     public boolean isRunning(Context ctx) {

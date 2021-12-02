@@ -357,7 +357,7 @@ public class UserChatActivity extends AppCompatActivity {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 String username = dataSnapshot.child(Receiver).child("token").getValue(String.class);
-                                sendNotification(username , Sender);
+                                sendNotification(username , Sender, Message);
                             }
 
                         }
@@ -557,16 +557,23 @@ public class UserChatActivity extends AppCompatActivity {
 
     }
 
-    private void sendNotification(String receiver, String sender) {
+    private void sendNotification(String receiver, String sender, String message) {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("to", receiver);
 
-            JSONObject jsonObject1 = new JSONObject();
-            jsonObject1.put("title", sender);
-            jsonObject1.put("body", "sent you a message");
+//            JSONObject jsonObject1 = new JSONObject();
+//            jsonObject1.put("title", sender);
+//            jsonObject1.put("body", "sent you a message");
+//
+//            jsonObject.put("notification", jsonObject1);
 
-            jsonObject.put("notification", jsonObject1);
+            JSONObject jsonObject2 = new JSONObject();
+            jsonObject2.put("title2", sender);
+            jsonObject2.put("body2", message);
+            jsonObject2.put("channel_id", "chat_channel_id");
+
+            jsonObject.put("data", jsonObject2);
 
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, fcm_url, jsonObject, new Response.Listener<JSONObject>() {
                 @Override
