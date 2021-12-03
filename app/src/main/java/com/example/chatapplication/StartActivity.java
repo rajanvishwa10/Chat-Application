@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -18,10 +19,23 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
         mAuth = FirebaseAuth.getInstance();
-        if (mAuth.getCurrentUser() != null) {
-            Intent intent = new Intent(StartActivity.this, MainActivity2.class);
-            startActivity(intent);
-            finish();
+
+        Intent intent = getIntent();
+        if (intent != null && intent.getExtras() != null) {
+            Bundle extras = intent.getExtras();
+            if(extras.getString("profile") == null){
+                if (mAuth.getCurrentUser() != null) {
+                    Intent intent2 = new Intent(StartActivity.this, MainActivity2.class);
+                    startActivity(intent2);
+                    finish();
+                }
+            }
+        }else{
+            if (mAuth.getCurrentUser() != null) {
+                Intent intent2 = new Intent(StartActivity.this, MainActivity2.class);
+                startActivity(intent2);
+                finish();
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

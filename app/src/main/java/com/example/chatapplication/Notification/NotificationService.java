@@ -161,8 +161,10 @@ public class NotificationService extends FirebaseMessagingService {
 
     private void sendNotification(final String title, final String contactName, final String body, final String channel_id) {
 
-        Intent notifyIntent = new Intent(getApplicationContext(), MainActivity2.class);
+        Intent notifyIntent = new Intent(getApplicationContext(), UserChatActivity.class);
         notifyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        notifyIntent.putExtra("name", title);
+        notifyIntent.putExtra("number", contactName);
         final PendingIntent notifyPendingIntent = PendingIntent.getActivity(
                 this, 0, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT
         );
@@ -191,16 +193,19 @@ public class NotificationService extends FirebaseMessagingService {
                                 Intent intent = new Intent(getApplicationContext(), UserChatActivity.class);
                                 intent.putExtra("name", title);
                                 intent.putExtra("number", contactName);
-                                intent.putExtra("url", url);
                                 PendingIntent bubbleIntent =
                                         PendingIntent.getActivity(getApplicationContext(), 0, intent, 0 /* flags */);
                                 //createShortCut(user);
+
+
                                 NotificationCompat.BubbleMetadata bubbleData =
                                         new NotificationCompat.BubbleMetadata.Builder()
                                                 .setIntent(bubbleIntent)
                                                 .setIcon(IconCompat.createWithResource(getApplicationContext(), R.drawable.ic_baseline_chat_24))
+//                                                .setIcon(IconCompat.createWithBitmap(resource))
                                                 .setDesiredHeight(600)
                                                 .build();
+
                                 NotificationCompat.MessagingStyle messagingStyle = new
                                         NotificationCompat.MessagingStyle(user);
                                 messagingStyle.setConversationTitle("New Message");
@@ -231,9 +236,11 @@ public class NotificationService extends FirebaseMessagingService {
                     } else {
                         Person user = new Person.Builder()
                                 .setName(title).build();
-                        Intent intent = new Intent(getApplicationContext(), MainActivity2.class);
+                        Intent intent = new Intent(getApplicationContext(), UserChatActivity.class);
+                        intent.putExtra("name", title);
+                        intent.putExtra("number", contactName);
                         PendingIntent bubbleIntent =
-                                PendingIntent.getActivity(getApplicationContext(), 0, intent, 0 /* flags */);
+                                PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT /* flags */);
                         //createShortCut(user);
                         NotificationCompat.BubbleMetadata bubbleData =
                                 new NotificationCompat.BubbleMetadata.Builder()

@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -77,7 +78,7 @@ public class ContactFragment extends Fragment {
         }
     }
 
-    private void checkNumber(final UserObject userObject) {
+    private void checkNumber(@NonNull final UserObject userObject) {
         final DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("Users");
         userDb.orderByChild("phoneNumber").equalTo(userObject.getPhone()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -86,21 +87,24 @@ public class ContactFragment extends Fragment {
                     String phone;
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         phone = dataSnapshot.child("phoneNumber").getValue(String.class);
-                        Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-                        while (phones.moveToNext()) {
-                            final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                            String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                            number = number.replaceAll("\\s", "");
-                            if (number.equals(phone)) {
-                                UserObject userObject1 = new UserObject(contactName, number);
-                                userlist.add(userObject1);
-                                HashSet<UserObject> hashSet = new LinkedHashSet<>(userlist);
-                                userlist.clear();
-                                userlist.addAll(hashSet);
-                                mUserListAdapter.setUserList(userlist);
-                                mUserListAdapter.notifyDataSetChanged();
+                        try {
+
+                            Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+                            while (phones.moveToNext()) {
+                                final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                                String number = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                                number = number.replaceAll("\\s", "");
+                                if (number.equals(phone)) {
+                                    UserObject userObject1 = new UserObject(contactName, number);
+                                    userlist.add(userObject1);
+                                    HashSet<UserObject> hashSet = new LinkedHashSet<>(userlist);
+                                    userlist.clear();
+                                    userlist.addAll(hashSet);
+                                    mUserListAdapter.setUserList(userlist);
+                                    mUserListAdapter.notifyDataSetChanged();
+                                }
                             }
-                        }
+                        }catch (NullPointerException ignored){}
                     }
                 }
             }
@@ -129,9 +133,15 @@ public class ContactFragment extends Fragment {
         mUserListAdapter.notifyDataSetChanged();
         layoutAnimation(mUserList);
         getPermissions();
-        getContactList();
+
 
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getContactList();
     }
 
     private void setOnClickListener() {

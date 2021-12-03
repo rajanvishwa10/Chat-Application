@@ -115,7 +115,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     private void setShortcut() {
 //        ShortcutManagerCompat.removeAllDynamicShortcuts(this);
-        Intent messageIntent = new Intent(getApplicationContext(), MainActivity2.class);
+        Intent messageIntent = new Intent(getApplicationContext(), UserChatActivity.class);
         messageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         messageIntent.setAction(Intent.ACTION_VIEW);
 
@@ -143,9 +143,10 @@ public class MainActivity2 extends AppCompatActivity {
                         String contact = chatlist.getId();
                         String title2 = "";
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                            Intent messageIntent = new Intent(getApplicationContext(), MainActivity2.class);
+                            Intent messageIntent = new Intent(getApplicationContext(), UserChatActivity.class);
                             messageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             messageIntent.setAction(Intent.ACTION_VIEW);
+
 
                             Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
                             while (phones.moveToNext()) {
@@ -158,7 +159,8 @@ public class MainActivity2 extends AppCompatActivity {
                                 }
                             }
                             phones.close();
-
+                            messageIntent.putExtra("name", title2);
+                            messageIntent.putExtra("number", contact);
                             ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(getApplicationContext(), title2).
                                     setShortLabel(title2).
                                     setLongLived(true).
