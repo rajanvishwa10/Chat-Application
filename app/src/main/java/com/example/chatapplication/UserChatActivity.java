@@ -324,8 +324,6 @@ public class UserChatActivity extends AppCompatActivity {
         //.child(Sender + " " + Receiver)
         //.child(Sender + " " + Receiver + " " + formattedDate);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy h:mm:ss:SSS", Locale.getDefault());
-        String date = dateFormat.format(c);
         final long timeInMillIs = System.currentTimeMillis();
 
         Map<String, Object> messages = new HashMap<>();
@@ -338,6 +336,7 @@ public class UserChatActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isComplete()) {
+                    editText.setText(null);
                     final DatabaseReference databaseReference1 = FirebaseDatabase.getInstance().getReference("Chatlist")
                             .child(Sender).child(Receiver);
                     HashMap<String, Object> hashMap = new HashMap<>();
@@ -348,7 +347,6 @@ public class UserChatActivity extends AppCompatActivity {
                             .child(Receiver).child(Sender);
 
                     databaseReference2.updateChildren(hashMap);
-                    editText.setText(null);
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
                     DatabaseReference myRef = database.getReference("Tokens");
                     myRef.addValueEventListener(new ValueEventListener() {

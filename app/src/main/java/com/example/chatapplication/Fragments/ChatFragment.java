@@ -36,7 +36,6 @@ public class ChatFragment extends Fragment {
     RecyclerView recyclerView;
     UserAdapter userAdapter;
 
-    List<RecentChat> chatList;
     List<Chatlist> userList;
 
     DatabaseReference databaseReference;
@@ -57,6 +56,7 @@ public class ChatFragment extends Fragment {
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setTitle("Getting Data");
         progressDialog.setMessage("Loading....");
+        progressDialog.setCancelable(false);
         progressDialog.show();
 
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("userNumber", Context.MODE_PRIVATE);
