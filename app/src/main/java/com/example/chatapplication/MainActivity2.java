@@ -31,6 +31,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -115,7 +116,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     private void setShortcut() {
 //        ShortcutManagerCompat.removeAllDynamicShortcuts(this);
-        Intent messageIntent = new Intent(getApplicationContext(), UserChatActivity.class);
+        Intent messageIntent = new Intent(getApplicationContext(), MainActivity2.class);
         messageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         messageIntent.setAction(Intent.ACTION_VIEW);
 
@@ -143,7 +144,7 @@ public class MainActivity2 extends AppCompatActivity {
                         String contact = chatlist.getId();
                         String title2 = "";
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                            Intent messageIntent = new Intent(getApplicationContext(), UserChatActivity.class);
+                            final Intent messageIntent = new Intent(getApplicationContext(), UserChatActivity.class);
                             messageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             messageIntent.setAction(Intent.ACTION_VIEW);
 
@@ -161,6 +162,7 @@ public class MainActivity2 extends AppCompatActivity {
                             phones.close();
                             messageIntent.putExtra("name", title2);
                             messageIntent.putExtra("number", contact);
+
                             ShortcutInfoCompat shortcutInfoCompat = new ShortcutInfoCompat.Builder(getApplicationContext(), title2).
                                     setShortLabel(title2).
                                     setLongLived(true).
@@ -170,6 +172,7 @@ public class MainActivity2 extends AppCompatActivity {
                         }
                     }
                 }
+                System.out.println("size = " + shortcutInfoCompatList.size());
                 ShortcutManagerCompat.addDynamicShortcuts(getApplicationContext(), shortcutInfoCompatList);
             }
 

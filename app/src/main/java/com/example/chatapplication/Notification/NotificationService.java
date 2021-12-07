@@ -1,29 +1,24 @@
 package com.example.chatapplication.Notification;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ShortcutInfo;
-import android.content.pm.ShortcutManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Icon;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.os.FileUtils;
 import android.provider.ContactsContract;
-import android.view.View;
+import android.provider.MediaStore;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
@@ -37,32 +32,28 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
-import com.example.chatapplication.Adapters.UserObject;
-import com.example.chatapplication.FullScreenImageActivity;
-import com.example.chatapplication.MainActivity;
+import com.example.chatapplication.Adapters.Chats;
+import com.example.chatapplication.Adapters.MessageAdapter;
 import com.example.chatapplication.MainActivity2;
 import com.example.chatapplication.R;
 import com.example.chatapplication.UserChatActivity;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import es.dmoral.toasty.Toasty;
 
@@ -187,9 +178,7 @@ public class NotificationService extends FirebaseMessagingService {
 
                             @Override
                             public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                                Person user = new Person.Builder()
-                                        .setIcon(IconCompat.createWithBitmap(resource))
-                                        .setName(title).build();
+
                                 Intent intent = new Intent(getApplicationContext(), UserChatActivity.class);
                                 intent.putExtra("name", title);
                                 intent.putExtra("number", contactName);
@@ -206,30 +195,62 @@ public class NotificationService extends FirebaseMessagingService {
                                                 .setDesiredHeight(600)
                                                 .build();
 
+                                final Person user = new Person.Builder()
+                                        .setIcon(IconCompat.createWithBitmap(resource))
+                                        .setName(title).build();
+
+                                NotificationCompat.MessagingStyle.Message notificationMessage;
+                                if (body.contains("http")) {
+                                    notificationMessage = new
+                                            NotificationCompat.MessagingStyle.Message(
+                                            "sent you an image",
+                                            System.currentTimeMillis(),
+                                            user
+                                    );
+
+                                } else {
+                                    notificationMessage = new
+                                            NotificationCompat.MessagingStyle.Message(
+                                            body,
+                                            System.currentTimeMillis(),
+                                            user
+                                    );
+                                }
+
+
                                 NotificationCompat.MessagingStyle messagingStyle = new
                                         NotificationCompat.MessagingStyle(user);
                                 messagingStyle.setConversationTitle("New Message");
-                                NotificationCompat.MessagingStyle.Message notificationMessage = new
-                                        NotificationCompat.MessagingStyle.Message(
-                                        body,
-                                        System.currentTimeMillis(),
-                                        user
-                                );
-                                messagingStyle.addMessage(notificationMessage);
+                                messagingStyle.addMessage(notificationMessage).build();
 
-
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channel_id)
+                                final NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channel_id)
                                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                                         .setContentIntent(notifyPendingIntent)
                                         .setSmallIcon(R.drawable.icons8_chat_500px_3)
                                         .setStyle(messagingStyle)
                                         .setAutoCancel(true)
-                                        .setBubbleMetadata(bubbleData)
+//                                        .setBubbleMetadata(bubbleData)
+                                        .setGroup("com.android.example.WORK_EMAIL")
                                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                                        .setShortcutId("Chats");
+                                        .setShortcutId(String.valueOf(user.getName()));
+//
+                                NotificationCompat.Builder builder3 = new NotificationCompat.Builder(getApplicationContext(), channel_id)
+                                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+//                                        .setContentIntent(notifyPendingIntent)
+                                        .setSmallIcon(R.drawable.icons8_chat_500px_3)
+                                        .setStyle(new NotificationCompat.InboxStyle()
+//                                                .addLine(user.getName() + "  " + notificationMessage.getText())
+//                                                .addLine(user2.getName() + "  " + notificationMessage2.getText())
+                                                .setSummaryText("2 new messages from 2 contacts"))
+                                        .setGroup("com.android.example.WORK_EMAIL")
+                                        .setAutoCancel(true)
+                                        .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+                                        .setGroupSummary(true);
 
+//
                                 NotificationManagerCompat managerCompat = NotificationManagerCompat.from(getApplicationContext());
                                 managerCompat.notify(12, builder.build());
+                                managerCompat.notify(14, builder3.build());
                                 return false;
                             }
                         }).submit();
@@ -287,6 +308,23 @@ public class NotificationService extends FirebaseMessagingService {
 
     }
 
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
+
+    private Uri getUrl(String body) {
+        try {
+            URL url = new URL(body);
+            return Uri.parse(url.toURI().toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private void createShortCut(Person user) {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -304,6 +342,26 @@ public class NotificationService extends FirebaseMessagingService {
 
         }
 
+    }
+
+    Bitmap res;
+
+    public Bitmap getBitmap(String imgUrl) {
+
+        Glide.with(getApplicationContext()).asBitmap().load(imgUrl)
+                .apply(RequestOptions.circleCropTransform()).listener(new RequestListener<Bitmap>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                return false;
+            }
+
+            @Override
+            public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                res = resource;
+                return false;
+            }
+        }).submit();
+        return res;
     }
 
     public boolean isRunning(Context ctx) {
