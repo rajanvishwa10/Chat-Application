@@ -8,20 +8,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.os.FileUtils;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
+import androidx.core.app.RemoteInput;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
@@ -32,8 +29,6 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
-import com.example.chatapplication.Adapters.Chats;
-import com.example.chatapplication.Adapters.MessageAdapter;
 import com.example.chatapplication.MainActivity2;
 import com.example.chatapplication.R;
 import com.example.chatapplication.UserChatActivity;
@@ -47,25 +42,21 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import es.dmoral.toasty.Toasty;
-
 public class NotificationService extends FirebaseMessagingService {
 
-    private static final String GENERAL_CHANNEL = "General Channel";
+    public static final String GENERAL_CHANNEL = "General Channel";
 
-    private static final String GENERAL_CHANNEL_ID = "general_channel_id";
+    public static final String GENERAL_CHANNEL_ID = "general_channel_id";
 
-    private static final String CHAT_CHANNEL = "Chats";
+    public static final String CHAT_CHANNEL = "Chats";
 
-    private static final String CHAT_CHANNEL_ID = "chat_channel_id";
+    public static final String CHAT_CHANNEL_ID = "chat_channel_id";
+
+    public static final int ID = 111;
 
     //todo setting up local notification as well
 
@@ -78,7 +69,7 @@ public class NotificationService extends FirebaseMessagingService {
         myRef.addValueEventListener(new ValueEventListener() {
 
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     String username = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("phoneNumber").getValue(String.class);
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
@@ -223,34 +214,46 @@ public class NotificationService extends FirebaseMessagingService {
                                 messagingStyle.setConversationTitle("New Message");
                                 messagingStyle.addMessage(notificationMessage).build();
 
+                                Intent broadIntent = new Intent(getApplicationContext(), ReplyBroadcastReceiver.class);
+                                broadIntent.setAction("REPLY_ACTION");
+                                broadIntent.putExtra("number", contactName);
+
+                                PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 18, broadIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                RemoteInput remoteInput = new RemoteInput.Builder("key_text_reply").setLabel("Reply").build();
+                                NotificationCompat.Action action = new NotificationCompat.Action.Builder(R.drawable.icons8_chat_500px_3, "Reply", pendingIntent)
+                                        .addRemoteInput(remoteInput).build();
+//                                pendingIntent.cancel();
+
                                 final NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channel_id)
                                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                                         .setContentIntent(notifyPendingIntent)
                                         .setSmallIcon(R.drawable.icons8_chat_500px_3)
                                         .setStyle(messagingStyle)
                                         .setAutoCancel(true)
+                                        .setOnlyAlertOnce(true)
+                                        .addAction(action)
 //                                        .setBubbleMetadata(bubbleData)
-                                        .setGroup("com.android.example.WORK_EMAIL")
+//                                        .setGroup("com.android.example.WORK_EMAIL")
                                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                                         .setShortcutId(String.valueOf(user.getName()));
 //
-                                NotificationCompat.Builder builder3 = new NotificationCompat.Builder(getApplicationContext(), channel_id)
-                                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-//                                        .setContentIntent(notifyPendingIntent)
-                                        .setSmallIcon(R.drawable.icons8_chat_500px_3)
-                                        .setStyle(new NotificationCompat.InboxStyle()
-//                                                .addLine(user.getName() + "  " + notificationMessage.getText())
-//                                                .addLine(user2.getName() + "  " + notificationMessage2.getText())
-                                                .setSummaryText("2 new messages from 2 contacts"))
-                                        .setGroup("com.android.example.WORK_EMAIL")
-                                        .setAutoCancel(true)
-                                        .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
-                                        .setGroupSummary(true);
+//                                NotificationCompat.Builder builder3 = new NotificationCompat.Builder(getApplicationContext(), channel_id)
+//                                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+////                                        .setContentIntent(notifyPendingIntent)
+//                                        .setSmallIcon(R.drawable.icons8_chat_500px_3)
+//                                        .setStyle(new NotificationCompat.InboxStyle()
+////                                                .addLine(user.getName() + "  " + notificationMessage.getText())
+////                                                .addLine(user2.getName() + "  " + notificationMessage2.getText())
+//                                                .setSummaryText("2 new messages from 2 contacts"))
+//                                        .setGroup("com.android.example.WORK_EMAIL")
+//                                        .setAutoCancel(true)
+//                                        .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+//                                        .setGroupSummary(true);
 
 //
                                 NotificationManagerCompat managerCompat = NotificationManagerCompat.from(getApplicationContext());
-                                managerCompat.notify(12, builder.build());
-                                managerCompat.notify(14, builder3.build());
+                                managerCompat.notify(ID, builder.build());
+//                                managerCompat.notify(14, builder3.build());
                                 return false;
                             }
                         }).submit();
@@ -292,7 +295,7 @@ public class NotificationService extends FirebaseMessagingService {
                                 .setShortcutId("Chats");
 
                         NotificationManagerCompat managerCompat = NotificationManagerCompat.from(getApplicationContext());
-                        managerCompat.notify(12, builder.build());
+                        managerCompat.notify(ID, builder.build());
 
                     }
                 }

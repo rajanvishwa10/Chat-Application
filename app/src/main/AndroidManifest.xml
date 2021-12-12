@@ -69,6 +69,8 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="general_channel_id" />
 
+        <receiver
+            android:name=".Notification.ReplyBroadcastReceiver" />
     </application>
 
 </manifest>

@@ -7,12 +7,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.RemoteInput;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -39,6 +42,7 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.example.chatapplication.Adapters.Chats;
 import com.example.chatapplication.Adapters.MessageAdapter;
+import com.example.chatapplication.Notification.NotificationService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -74,7 +78,7 @@ import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
 public class UserChatActivity extends AppCompatActivity {
     Toolbar toolbar;
     EmojiconEditText editText;
-//    ImageView imageView;
+    //    ImageView imageView;
     CircleImageView circleImageView;
     String number, senderNumber, url;
     DatabaseReference myRef;
@@ -96,7 +100,7 @@ public class UserChatActivity extends AppCompatActivity {
         setContentView(R.layout.activity_user_chat);
 
         requestQueue = Volley.newRequestQueue(this);
-
+        editText = (EmojiconEditText) findViewById(R.id.sendmess);
         recyclerView = findViewById(R.id.recycler);
         recyclerView.setHasFixedSize(true);
         chats = new ArrayList<>();
@@ -104,7 +108,6 @@ public class UserChatActivity extends AppCompatActivity {
 
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         getWindow().setNavigationBarColor(Color.parseColor("#EDE9E9"));
-
 
         number = getIntent().getStringExtra("number");
 
@@ -133,7 +136,7 @@ public class UserChatActivity extends AppCompatActivity {
             textView.setText(name);
         }
 
-        editText = (EmojiconEditText) findViewById(R.id.sendmess);
+
 
 //        imageView = findViewById(R.id.imagebutton);
 
@@ -143,8 +146,6 @@ public class UserChatActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("userNumber", Context.MODE_PRIVATE);
         String num = sharedPreferences.getString("number", "");
 
-        System.out.println("send " + num);
-        System.out.println("rec " + number);
         readMessages(num, number);
 
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -208,13 +209,25 @@ public class UserChatActivity extends AppCompatActivity {
                 Pair<View, String> pair = Pair.create(findViewById(R.id.circleImageView), circleImageView.getTransitionName());
                 Pair<View, String> pair2 = Pair.create(findViewById(R.id.name), findViewById(R.id.name).getTransitionName());
 
-                ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(UserChatActivity.this,pair, pair2);
+                ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(UserChatActivity.this, pair, pair2);
                 intent.putExtra("number", number);
                 intent.putExtra("url", url);
                 intent.putExtra("name", name);
                 startActivity(intent, activityOptionsCompat.toBundle());
             }
         });
+
+        getDataFromIntent(num, number);
+    }
+
+    private void getDataFromIntent(String num, String number) {
+        Bundle remoteReply = RemoteInput.getResultsFromIntent(getIntent());
+        if(remoteReply != null){
+            String message = remoteReply.getCharSequence("key_text_reply").toString();
+            sendMessage(num, number, message);
+        }
+        NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(getApplicationContext());
+        mNotificationManager.cancelAll();
     }
 
     private void seenMessage(final String number) {
@@ -355,7 +368,7 @@ public class UserChatActivity extends AppCompatActivity {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 String username = dataSnapshot.child(Receiver).child("token").getValue(String.class);
-                                sendNotification(username , Sender, Message);
+                                sendNotification(username, Sender, Message);
                             }
 
                         }
@@ -583,8 +596,7 @@ public class UserChatActivity extends AppCompatActivity {
                 public void onErrorResponse(VolleyError error) {
 
                 }
-            })
-            {
+            }) {
                 @Override
                 public Map<String, String> getHeaders() throws AuthFailureError {
                     Map<String, String> map = new HashMap<>();

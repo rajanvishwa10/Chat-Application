@@ -93,7 +93,6 @@ public class MainActivity2 extends AppCompatActivity {
                     editor.putString("number", username);
                     editor.apply();
                     setShortcut();
-                    System.out.println("username in= " + username);
                     FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
                         @Override
                         public void onSuccess(InstanceIdResult instanceIdResult) {
