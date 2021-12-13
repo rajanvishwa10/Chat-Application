@@ -24,9 +24,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.chatapplication.Adapters.Chats;
+import com.example.chatapplication.MyApp;
 import com.example.chatapplication.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -52,19 +54,25 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        requestQueue = Volley.newRequestQueue(context);
 
         SharedPreferences sharedPreferences = context.getSharedPreferences("userNumber", Context.MODE_PRIVATE);
         String num = sharedPreferences.getString("number", "");
 
-        if (intent.getStringExtra("number") != null) {
-            String number = intent.getStringExtra("number");
-            seenMessage(number, num);
-            sendMessage(context, num, number, String.valueOf(getReplyMessage(intent, context)));
+        if (intent.getAction().equals("REPLY_ACTION")) {
+            requestQueue = Volley.newRequestQueue(context);
+            if (intent.getStringExtra("number") != null) {
+                String number = intent.getStringExtra("number");
+                seenMessage(number, num, false, context);
+                sendMessage(context, num, number, String.valueOf(getReplyMessage(intent, context)));
+            }
+        } else {
+            NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(context.getApplicationContext());
+            mNotificationManager.cancel(NotificationService.ID);
+            if (intent.getStringExtra("number") != null) {
+                String number = intent.getStringExtra("number");
+                seenMessage(number, num, true, context);
+            }
         }
-
-//        NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(context.getApplicationContext());
-//        mNotificationManager.cancelAll();
 
     }
 
@@ -89,7 +97,7 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
         return null;
     }
 
-    private void seenMessage(final String number, final String senderNumber) {
+    private void seenMessage(final String number, final String senderNumber, final boolean cancelNotification, final Context context) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -99,7 +107,12 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
                     if (chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
                         HashMap<String, Object> hashMap = new HashMap<>();
                         hashMap.put("isseen", true);
-                        dataSnapshot.getRef().updateChildren(hashMap);
+                        dataSnapshot.getRef().updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
+                            }
+                        });
                     }
                 }
             }
@@ -200,6 +213,7 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
                 if (!snapshot.exists()) {
                     databaseReference2.child("id").setValue(Sender);
                     databaseReference2.child("date").setValue(timeInMillIs);
+                    MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
                 }
             }
 

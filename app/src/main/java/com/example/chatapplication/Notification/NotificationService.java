@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -19,6 +20,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
@@ -220,9 +222,20 @@ public class NotificationService extends FirebaseMessagingService {
 
                                 PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 18, broadIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                                 RemoteInput remoteInput = new RemoteInput.Builder("key_text_reply").setLabel("Reply").build();
+
                                 NotificationCompat.Action action = new NotificationCompat.Action.Builder(R.drawable.icons8_chat_500px_3, "Reply", pendingIntent)
                                         .addRemoteInput(remoteInput).build();
-//                                pendingIntent.cancel();
+
+
+                                Intent broadIntent2 = new Intent(getApplicationContext(), ReplyBroadcastReceiver.class);
+                                broadIntent2.setAction("MARK_AS_ACTION");
+                                broadIntent2.putExtra("number", contactName);
+
+                                PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext(), 19, broadIntent2, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                                NotificationCompat.Action action2 = new NotificationCompat.Action.Builder(R.drawable.icons8_chat_500px_3, "Mark as read", pendingIntent2)
+                                        .build();
+
 
                                 final NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channel_id)
                                         .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -232,6 +245,8 @@ public class NotificationService extends FirebaseMessagingService {
                                         .setAutoCancel(true)
                                         .setOnlyAlertOnce(true)
                                         .addAction(action)
+                                        .addAction(action2)
+                                        .setColor(ContextCompat.getColor(getApplicationContext(),R.color.colorAccent))
 //                                        .setBubbleMetadata(bubbleData)
 //                                        .setGroup("com.android.example.WORK_EMAIL")
                                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
