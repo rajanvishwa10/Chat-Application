@@ -1,14 +1,10 @@
 package com.example.chatapplication.Notification;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.service.notification.StatusBarNotification;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,6 +20,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.chatapplication.Adapters.Chats;
+import com.example.chatapplication.Cypher;
 import com.example.chatapplication.MyApp;
 import com.example.chatapplication.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -53,24 +50,50 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
     RequestQueue requestQueue;
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
 
         SharedPreferences sharedPreferences = context.getSharedPreferences("userNumber", Context.MODE_PRIVATE);
-        String num = sharedPreferences.getString("number", "");
+        final String num = sharedPreferences.getString("number", "");
 
         if (intent.getAction().equals("REPLY_ACTION")) {
             requestQueue = Volley.newRequestQueue(context);
             if (intent.getStringExtra("number") != null) {
                 String number = intent.getStringExtra("number");
-                seenMessage(number, num, false, context);
-                sendMessage(context, num, number, String.valueOf(getReplyMessage(intent, context)));
+                seenMessage(number, num, context);
+                sendMessage(context, num, number, Cypher.encrypt(String.valueOf(getReplyMessage(intent, context))).trim());
             }
         } else {
-            NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(context.getApplicationContext());
-            mNotificationManager.cancel(NotificationService.ID);
             if (intent.getStringExtra("number") != null) {
-                String number = intent.getStringExtra("number");
-                seenMessage(number, num, true, context);
+                final String number = intent.getStringExtra("number");
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
+                databaseReference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            Chats chat = dataSnapshot.getValue(Chats.class);
+                            if (chat.getReceiver().equals(num) && chat.getSender().equals(number)) {
+                                HashMap<String, Object> hashMap = new HashMap<>();
+                                hashMap.put("isseen", true);
+                                dataSnapshot.getRef().updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isComplete()){
+                                            NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(context.getApplicationContext());
+                                            mNotificationManager.cancel(NotificationService.ID);
+//                                            MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
+                                        }
+                                    }
+                                });
+
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
             }
         }
 
@@ -97,7 +120,7 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
         return null;
     }
 
-    private void seenMessage(final String number, final String senderNumber, final boolean cancelNotification, final Context context) {
+    private void seenMessage(final String number, final String senderNumber, final Context context) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -107,12 +130,7 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
                     if (chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
                         HashMap<String, Object> hashMap = new HashMap<>();
                         hashMap.put("isseen", true);
-                        dataSnapshot.getRef().updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
-                            }
-                        });
+                        dataSnapshot.getRef().updateChildren(hashMap);
                     }
                 }
             }
@@ -147,10 +165,6 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
                     HashMap<String, Object> hashMap = new HashMap<>();
                     hashMap.put("date", timeInMillIs);
                     databaseReference1.updateChildren(hashMap);
-
-                    Toast.makeText(context, "Message Sent", Toast.LENGTH_SHORT).show();
-//                    NotificationManagerCompat.from(context).cancel(12);
-                    removeNoti(context);
 
                     final DatabaseReference databaseReference2 = FirebaseDatabase.getInstance().getReference("Chatlist")
                             .child(Receiver).child(Sender);
@@ -213,8 +227,11 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
                 if (!snapshot.exists()) {
                     databaseReference2.child("id").setValue(Sender);
                     databaseReference2.child("date").setValue(timeInMillIs);
-                    MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
                 }
+                Toast.makeText(context, "Message Sent", Toast.LENGTH_SHORT).show();
+//                    NotificationManagerCompat.from(context).cancel(12);
+                removeNoti(context);
+                MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
             }
 
             @Override

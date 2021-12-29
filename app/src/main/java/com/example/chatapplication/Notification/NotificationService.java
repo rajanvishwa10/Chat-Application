@@ -31,6 +31,7 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
+import com.example.chatapplication.Cypher;
 import com.example.chatapplication.MainActivity2;
 import com.example.chatapplication.R;
 import com.example.chatapplication.UserChatActivity;
@@ -73,9 +74,11 @@ public class NotificationService extends FirebaseMessagingService {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    String username = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("phoneNumber").getValue(String.class);
-                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
-                    databaseReference.child(username).child("token").setValue(s);
+                    if(FirebaseAuth.getInstance().getCurrentUser() != null) {
+                        String username = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("phoneNumber").getValue(String.class);
+                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
+                        databaseReference.child(username).child("token").setValue(s);
+                    }
                 }
             }
 
@@ -113,7 +116,7 @@ public class NotificationService extends FirebaseMessagingService {
                     break;
                 }
             }
-            sendNotification(title2, contact, body, channel_id);
+            sendNotification(title2, contact, Cypher.decrypt(body), channel_id);
             phones.close();
         }
 
@@ -213,7 +216,6 @@ public class NotificationService extends FirebaseMessagingService {
 
                                 NotificationCompat.MessagingStyle messagingStyle = new
                                         NotificationCompat.MessagingStyle(user);
-                                messagingStyle.setConversationTitle("New Message");
                                 messagingStyle.addMessage(notificationMessage).build();
 
                                 Intent broadIntent = new Intent(getApplicationContext(), ReplyBroadcastReceiver.class);

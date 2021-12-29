@@ -158,7 +158,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                     if (chat.getReceiver().equals(number) && chat.getSender().equals(senderNumber) ||
                             chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
 
-                        lastmess = chat.getMessage();
+                        lastmess = Cypher.decrypt(chat.getMessage());
+                        System.out.println("decrypt = " + Cypher.decrypt(lastmess));
                         if (lastmess.contains("https://")) {
                             lastmess = "Image";
                         }

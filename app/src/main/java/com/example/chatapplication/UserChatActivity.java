@@ -224,7 +224,7 @@ public class UserChatActivity extends AppCompatActivity {
         Bundle remoteReply = RemoteInput.getResultsFromIntent(getIntent());
         if(remoteReply != null){
             String message = remoteReply.getCharSequence("key_text_reply").toString();
-            sendMessage(num, number, message);
+            sendMessage(num, number, Cypher.encrypt(message).trim());
         }
         NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(getApplicationContext());
         mNotificationManager.cancelAll();
@@ -324,7 +324,7 @@ public class UserChatActivity extends AppCompatActivity {
         if (message.isEmpty()) {
             Toasty.error(this, "Can't send Empty Messages", Toast.LENGTH_SHORT).show();
         } else {
-            sendMessage(senderNumber, number, message);
+            sendMessage(senderNumber, number, Cypher.encrypt(message).trim());
         }
 
     }
@@ -528,7 +528,7 @@ public class UserChatActivity extends AppCompatActivity {
                                 new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(Uri Imguri) {
-                                        sendMessage(senderNumber, number, Imguri.toString());
+                                        sendMessage(senderNumber, number, Cypher.encrypt(Imguri.toString()).trim());
                                     }
                                 }
                         );

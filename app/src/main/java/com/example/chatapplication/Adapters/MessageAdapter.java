@@ -16,6 +16,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.chatapplication.Cypher;
 import com.example.chatapplication.FullScreenImageActivity;
 import com.example.chatapplication.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,16 +50,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         if (viewType == MSG_TYPE_RIGHT) {
             View view = LayoutInflater.from(context).inflate(R.layout.chat_right_message, parent, false);
             return new ViewHolder(view);
-        }
-        else if(viewType == MSG_TYPE_RIGHT_IMAGE) {
+        } else if (viewType == MSG_TYPE_RIGHT_IMAGE) {
             View view = LayoutInflater.from(context).inflate(R.layout.chat_right_image_message, parent, false);
             return new ViewHolder(view);
-        }
-        else if(viewType == MSG_TYPE_LEFT_IMAGE) {
+        } else if (viewType == MSG_TYPE_LEFT_IMAGE) {
             View view = LayoutInflater.from(context).inflate(R.layout.chat_left_image_message, parent, false);
             return new ViewHolder(view);
-        }
-        else {
+        } else {
             View view = LayoutInflater.from(context).inflate(R.layout.chat_left_message, parent, false);
             return new ViewHolder(view);
         }
@@ -70,16 +68,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
 
         Chats chat = chats.get(position);
-        final String chatMessage = chat.getMessage();
-
+        final String chatMessage = Cypher.decrypt(chat.getMessage()) == null ? Cypher.decryptURL(chat.getMessage()) : Cypher.decrypt(chat.getMessage());
         final String time = chat.getDate();
         String[] newTime = time.split("\\s");
 
         if (chatMessage.contains("https://")) {
-//            holder.imageView.setVisibility(View.VISIBLE);
-//            holder.cardView.setVisibility(View.VISIBLE);
-//            holder.linearLayout.setVisibility(View.GONE);
-//            holder.imageTime.setVisibility(View.VISIBLE);
             holder.imageTime.setText(newTime[1] + " " + newTime[2]);
             holder.imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -140,13 +133,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         number = sharedPreferences.getString("number", "");
         //System.out.println("number" + number);
         if (chats.get(position).getSender().equals(number)) {
-            if (chats.get(position).getMessage().contains("http")) {
+            String message  = Cypher.decrypt(chats.get(position).getMessage()) == null ? Cypher.decryptURL(chats.get(position).getMessage()):Cypher.decrypt(chats.get(position).getMessage());
+            if (message.contains("http")) {
                 return MSG_TYPE_RIGHT_IMAGE;
             } else {
                 return MSG_TYPE_RIGHT;
             }
         } else {
-            if (chats.get(position).getMessage().contains("http")) {
+            String message  = Cypher.decrypt(chats.get(position).getMessage()) == null ? Cypher.decryptURL(chats.get(position).getMessage()):Cypher.decrypt(chats.get(position).getMessage());
+            if (message.contains("http")) {
                 return MSG_TYPE_LEFT_IMAGE;
             } else {
                 return MSG_TYPE_LEFT;
