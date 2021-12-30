@@ -90,7 +90,7 @@ public class MainActivity2 extends AppCompatActivity {
                     final String username = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("phoneNumber").getValue(String.class);
                     SharedPreferences sharedPreferences = getSharedPreferences("userNumber", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("number", username);
+                    editor.putString("number", Cypher.encrypt(username).trim());
                     editor.apply();
                     setShortcut();
                     FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
@@ -140,7 +140,7 @@ public class MainActivity2 extends AppCompatActivity {
                     rank++;
                     Chatlist chatlist = dataSnapshot.getValue(Chatlist.class);
                     if (!sender.equals(chatlist.getId())) {
-                        String contact = chatlist.getId();
+                        String contact = Cypher.decrypt(chatlist.getId()).trim();
                         String title2 = "";
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                             final Intent messageIntent = new Intent(getApplicationContext(), UserChatActivity.class);

@@ -65,14 +65,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             final String contactName = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String phone = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
             phone = phone.replaceAll("\\s", "");
-            if (phone.equals(number)) {
+            if (phone.equals(Cypher.decrypt(number).trim())) {
                 holder.textView.setText(contactName);
                 holder.linearLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(context, UserChatActivity.class);
                         intent.putExtra("name", contactName);
-                        intent.putExtra("number", number);
+                        intent.putExtra("number", Cypher.decrypt(number).trim());
                         intent.putExtra("url", url1);
                         context.startActivity(intent);
                     }
@@ -80,7 +80,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 DatabaseReference myRef = database.getReference("Users");
-                myRef.orderByChild("phoneNumber").equalTo(number).addListenerForSingleValueEvent(new ValueEventListener() {
+                myRef.orderByChild("phoneNumber").equalTo(Cypher.decrypt(number).trim()).addListenerForSingleValueEvent(new ValueEventListener() {
 
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -159,7 +159,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                             chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
 
                         lastmess = Cypher.decrypt(chat.getMessage());
-                        System.out.println("decrypt = " + Cypher.decrypt(lastmess));
                         if (lastmess.contains("https://")) {
                             lastmess = "Image";
                         }

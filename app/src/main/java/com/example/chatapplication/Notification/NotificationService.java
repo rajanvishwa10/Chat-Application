@@ -74,7 +74,7 @@ public class NotificationService extends FirebaseMessagingService {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    if(FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                         String username = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("phoneNumber").getValue(String.class);
                         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
                         databaseReference.child(username).child("token").setValue(s);
@@ -127,7 +127,7 @@ public class NotificationService extends FirebaseMessagingService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(
                     GENERAL_CHANNEL_ID, GENERAL_CHANNEL,
-                    NotificationManager.IMPORTANCE_HIGH
+                    NotificationManager.IMPORTANCE_NONE
             );
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(notificationChannel);
@@ -248,7 +248,7 @@ public class NotificationService extends FirebaseMessagingService {
                                         .setOnlyAlertOnce(true)
                                         .addAction(action)
                                         .addAction(action2)
-                                        .setColor(ContextCompat.getColor(getApplicationContext(),R.color.colorAccent))
+                                        .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent))
 //                                        .setBubbleMetadata(bubbleData)
 //                                        .setGroup("com.android.example.WORK_EMAIL")
                                         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -283,23 +283,56 @@ public class NotificationService extends FirebaseMessagingService {
                         PendingIntent bubbleIntent =
                                 PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT /* flags */);
                         //createShortCut(user);
-                        NotificationCompat.BubbleMetadata bubbleData =
-                                new NotificationCompat.BubbleMetadata.Builder()
-                                        .setIntent(bubbleIntent)
-                                        .setIcon(IconCompat.createWithResource(getApplicationContext(), R.drawable.ic_baseline_chat_24))
-                                        .setDesiredHeight(600)
-                                        .build();
+//                        NotificationCompat.BubbleMetadata bubbleData =
+//                                new NotificationCompat.BubbleMetadata.Builder()
+//                                        .setIntent(bubbleIntent)
+//                                        .setIcon(IconCompat.createWithResource(getApplicationContext(), R.drawable.ic_baseline_chat_24))
+//                                        .setDesiredHeight(600)
+//                                        .build();
+
+                        NotificationCompat.MessagingStyle.Message notificationMessage;
+                        if (body.contains("http")) {
+                            notificationMessage = new
+                                    NotificationCompat.MessagingStyle.Message(
+                                    "sent you an image",
+                                    System.currentTimeMillis(),
+                                    user
+                            );
+
+                        } else {
+                            notificationMessage = new
+                                    NotificationCompat.MessagingStyle.Message(
+                                    body,
+                                    System.currentTimeMillis(),
+                                    user
+                            );
+                        }
+
                         NotificationCompat.MessagingStyle messagingStyle = new
                                 NotificationCompat.MessagingStyle(user);
                         messagingStyle.setConversationTitle("New Message");
-                        NotificationCompat.MessagingStyle.Message notificationMessage = new
-                                NotificationCompat.MessagingStyle.Message(
-                                body,
-                                System.currentTimeMillis(),
-                                user
-                        );
+
                         messagingStyle.addMessage(notificationMessage);
 
+                        Intent broadIntent = new Intent(getApplicationContext(), ReplyBroadcastReceiver.class);
+                        broadIntent.setAction("REPLY_ACTION");
+                        broadIntent.putExtra("number", contactName);
+
+                        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 18, broadIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        RemoteInput remoteInput = new RemoteInput.Builder("key_text_reply").setLabel("Reply").build();
+
+                        NotificationCompat.Action action = new NotificationCompat.Action.Builder(R.drawable.icons8_chat_500px_3, "Reply", pendingIntent)
+                                .addRemoteInput(remoteInput).build();
+
+
+                        Intent broadIntent2 = new Intent(getApplicationContext(), ReplyBroadcastReceiver.class);
+                        broadIntent2.setAction("MARK_AS_ACTION");
+                        broadIntent2.putExtra("number", contactName);
+
+                        PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext(), 19, broadIntent2, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                        NotificationCompat.Action action2 = new NotificationCompat.Action.Builder(R.drawable.icons8_chat_500px_3, "Mark as read", pendingIntent2)
+                                .build();
 
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channel_id)
                                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -307,9 +340,13 @@ public class NotificationService extends FirebaseMessagingService {
                                 .setSmallIcon(R.drawable.icons8_chat_500px_3)
                                 .setStyle(messagingStyle)
                                 .setAutoCancel(true)
-                                .setBubbleMetadata(bubbleData)
+                                .setOnlyAlertOnce(true)
+                                .addAction(action)
+                                .addAction(action2)
+                                .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent))
+//                                .setBubbleMetadata(bubbleData)
                                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-                                .setShortcutId("Chats");
+                                .setShortcutId(String.valueOf(user.getName()));
 
                         NotificationManagerCompat managerCompat = NotificationManagerCompat.from(getApplicationContext());
                         managerCompat.notify(ID, builder.build());

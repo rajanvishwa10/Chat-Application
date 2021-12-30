@@ -87,42 +87,8 @@ public class ChatFragment extends Fragment {
             }
         });
 
-//        updateToken(FirebaseInstanceId.getInstance().getToken());
-
         return view;
     }
 
-//    private void updateToken(String token){
-//        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Tokens");
-////        Token token1 = new Token(token);
-//        databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(token1);
-//    }
-
-//    private void chatList(){
-//        chatList = new ArrayList<>();
-//        databaseReference = FirebaseDatabase.getInstance().getReference("Users");
-//        databaseReference.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                chatList.clear();
-//                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
-//                    RecentChat userObject = dataSnapshot.getValue(RecentChat.class);
-//                    for(Chatlist chatlist : userList){
-//                        if(userObject.getPhoneNumber().equals(chatlist.getId())){
-//                            chatList.add(userObject);
-//                        }
-//                    }
-//                }
-//                userAdapter = new UserAdapter(getContext(), chatList);
-//                progressDialog.dismiss();
-//                recyclerView.setAdapter(userAdapter);
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
-//    }
 
 }

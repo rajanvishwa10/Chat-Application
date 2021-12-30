@@ -146,7 +146,7 @@ public class UserChatActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("userNumber", Context.MODE_PRIVATE);
         String num = sharedPreferences.getString("number", "");
 
-        readMessages(num, number);
+//        readMessages(Cypher.decrypt(num).trim(), number);
 
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("Users");
@@ -265,9 +265,11 @@ public class UserChatActivity extends AppCompatActivity {
                 if (dataSnapshot.exists()) {
                     senderNumber = dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                             .child("phoneNumber").getValue(String.class);
+                    senderNumber = Cypher.encrypt(senderNumber).trim();
+                    readMessages(senderNumber, number);
                     SharedPreferences sharedPreferences = getSharedPreferences("userNumber", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("number", senderNumber);
+                    editor.putString("number", Cypher.encrypt(senderNumber).trim());
                     editor.apply();
                 } else {
                     senderNumber = "";
@@ -290,8 +292,8 @@ public class UserChatActivity extends AppCompatActivity {
                     chats.clear();
                     for (DataSnapshot snapshot1 : snapshot.getChildren()) {
                         Chats chat = snapshot1.getValue(Chats.class);
-                        if (chat.getReceiver().equals(receiverPhone) && chat.getSender().equals(phone) ||
-                                chat.getReceiver().equals(phone) && chat.getSender().equals(receiverPhone)) {
+                        if (Cypher.decrypt(chat.getReceiver()).trim().equals(receiverPhone) && chat.getSender().equals(phone) ||
+                                chat.getReceiver().equals(phone) &&  Cypher.decrypt(chat.getSender()).trim().equals(receiverPhone)) {
 
                             chats.add(chat);
 
@@ -304,7 +306,7 @@ public class UserChatActivity extends AppCompatActivity {
                     //System.out.println("snap"+snapshot.getChildren());
 
                 } else {
-                    Toasty.error(getApplicationContext(), "Cant get messages", Toast.LENGTH_SHORT).show();
+                    Toasty.error(getApplicationContext(), "No messages", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -324,7 +326,7 @@ public class UserChatActivity extends AppCompatActivity {
         if (message.isEmpty()) {
             Toasty.error(this, "Can't send Empty Messages", Toast.LENGTH_SHORT).show();
         } else {
-            sendMessage(senderNumber, number, Cypher.encrypt(message).trim());
+            sendMessage(senderNumber, Cypher.encrypt(number).trim(), Cypher.encrypt(message).trim());
         }
 
     }
@@ -368,7 +370,7 @@ public class UserChatActivity extends AppCompatActivity {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 String username = dataSnapshot.child(Receiver).child("token").getValue(String.class);
-                                sendNotification(username, Sender, Message);
+                                sendNotification(username, Cypher.decrypt(Sender).trim(), Cypher.decrypt(Message).trim());
                             }
 
                         }
