@@ -237,7 +237,7 @@ public class UserChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Chats chat = dataSnapshot.getValue(Chats.class);
-                    if (chat.getReceiver().equals(senderNumber) && chat.getSender().equals(number)) {
+                    if (chat.getReceiver().equals(senderNumber) && Cypher.decrypt(chat.getSender()).trim().equals(number)) {
                         HashMap<String, Object> hashMap = new HashMap<>();
                         hashMap.put("isseen", true);
                         dataSnapshot.getRef().updateChildren(hashMap);
@@ -369,7 +369,7 @@ public class UserChatActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
-                                String username = dataSnapshot.child(Receiver).child("token").getValue(String.class);
+                                String username = dataSnapshot.child(Cypher.decrypt(Receiver).trim()).child("token").getValue(String.class);
                                 sendNotification(username, Cypher.decrypt(Sender).trim(), Cypher.decrypt(Message).trim());
                             }
 
@@ -591,7 +591,7 @@ public class UserChatActivity extends AppCompatActivity {
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, fcm_url, jsonObject, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
-                    System.out.println(response);
+                    System.out.println("response = " + response);
                 }
             }, new Response.ErrorListener() {
                 @Override

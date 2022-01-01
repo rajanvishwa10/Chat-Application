@@ -3,7 +3,9 @@ package com.example.chatapplication.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.icu.text.Replaceable;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -59,18 +61,18 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
             requestQueue = Volley.newRequestQueue(context);
             if (intent.getStringExtra("number") != null) {
                 String number = intent.getStringExtra("number");
-                seenMessage(number, num, context);
-                sendMessage(context, num, number, Cypher.encrypt(String.valueOf(getReplyMessage(intent, context))).trim());
+                seenMessage(Cypher.encrypt(number).trim(), num, context);
+                sendMessage(context, num, Cypher.encrypt(number).trim(), Cypher.encrypt(String.valueOf(getReplyMessage(intent, context))).trim());
             }
         } else {
             if (intent.getStringExtra("number") != null) {
-                final String number = intent.getStringExtra("number");
+                final String number = Cypher.encrypt(intent.getStringExtra("number")).trim();
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Messages");
                 databaseReference.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            Chats chat = dataSnapshot.getValue(Chats.class);
+                            final Chats chat = dataSnapshot.getValue(Chats.class);
                             if (chat.getReceiver().equals(num) && chat.getSender().equals(number)) {
                                 HashMap<String, Object> hashMap = new HashMap<>();
                                 hashMap.put("isseen", true);
@@ -80,7 +82,7 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
                                         if(task.isComplete()){
                                             NotificationManagerCompat mNotificationManager = NotificationManagerCompat.from(context.getApplicationContext());
                                             mNotificationManager.cancel(NotificationService.ID);
-//                                            MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
+                                            //MyApp.getInstance().unregisterReceiver(ReplyBroadcastReceiver.this);
                                         }
                                     }
                                 });
@@ -102,6 +104,7 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
     private void removeNoti(Context context) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NotificationService.CHAT_CHANNEL_ID)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setSound(null)
                 .setContentText("Message Sent")
                 .setContentTitle("Message Sent")
                 .setTimeoutAfter(2000)
@@ -278,6 +281,7 @@ public class ReplyBroadcastReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
     }
+
 
 }
 

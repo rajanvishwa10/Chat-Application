@@ -7,8 +7,10 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.icu.text.Replaceable;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
@@ -116,7 +118,7 @@ public class NotificationService extends FirebaseMessagingService {
                     break;
                 }
             }
-            sendNotification(title2, contact, Cypher.decrypt(body), channel_id);
+            sendNotification(title2, contact, body, channel_id);
             phones.close();
         }
 
